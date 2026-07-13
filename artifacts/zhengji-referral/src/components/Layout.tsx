@@ -21,6 +21,12 @@ const adminNav: NavItem[] = [
   { href: "/admin/exports", label: "Exports", labelZh: "导出数据" },
 ];
 
+const brandAdminNav = adminNav.filter((item) => item.href !== "/admin/payouts");
+
+const financeNav = adminNav.filter((item) =>
+  ["/admin", "/admin/payouts", "/admin/audit", "/admin/exports"].includes(item.href),
+);
+
 const staffNav: NavItem[] = [
   { href: "/staff", label: "Lead Pipeline", labelZh: "客户管道" },
   { href: "/staff/commissions", label: "Commissions", labelZh: "佣金审批" },
@@ -36,7 +42,9 @@ const partnerNav: NavItem[] = [
 
 function getRoleNav(role?: string): NavItem[] {
   const normalized = normalizeRole(role);
-  if (normalized === "super_admin" || normalized === "brand_admin" || normalized === "finance") return adminNav;
+  if (normalized === "super_admin") return adminNav;
+  if (normalized === "brand_admin") return brandAdminNav;
+  if (normalized === "finance") return financeNav;
   if (normalized === "outlet_staff") return staffNav;
   if (normalized === "partner_admin" || normalized === "partner_staff") return partnerNav;
   return [];
