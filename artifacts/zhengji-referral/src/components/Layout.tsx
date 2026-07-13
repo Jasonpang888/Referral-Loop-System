@@ -63,19 +63,17 @@ function getRoleLabel(role?: string) {
 
 export default function Layout({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const logout = useLogout();
 
   const nav = getRoleNav(user?.role);
   const roleLabel = getRoleLabel(user?.role);
 
   const handleLogout = () => {
-    logout.mutate(undefined, {
-      onSettled: () => {
-        localStorage.removeItem("zhengji_token");
-        window.dispatchEvent(new Event("storage"));
-      },
-    });
+    localStorage.removeItem("zhengji_token");
+    window.dispatchEvent(new Event("storage"));
+    setLocation("/login");
+    logout.mutate(undefined);
   };
 
   return (
@@ -121,6 +119,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             variant="outline"
             className="w-full text-xs border-sidebar-border text-sidebar-foreground bg-transparent hover:bg-sidebar-accent"
             onClick={handleLogout}
+            disabled={logout.isPending}
           >
             Logout | 登出
           </Button>
@@ -133,7 +132,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           <h1 className="text-base font-serif font-bold">正记健康</h1>
           <p className="text-xs text-sidebar-foreground/60">{roleLabel.en}</p>
         </div>
-        <Button size="sm" variant="ghost" className="text-sidebar-foreground text-xs" onClick={handleLogout}>
+        <Button size="sm" variant="ghost" className="text-sidebar-foreground text-xs" onClick={handleLogout} disabled={logout.isPending}>
           Logout
         </Button>
       </div>
