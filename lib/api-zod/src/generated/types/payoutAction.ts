@@ -8,5 +8,7 @@
 
 export interface PayoutAction {
   payoutReference: string;
+  /** @nullable */
+  proofUrl?: string | null;
   auditNote?: string;
 }

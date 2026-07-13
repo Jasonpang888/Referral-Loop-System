@@ -1,4 +1,4 @@
-import { useGetReferralPage, useCreateLead, LeadInputLang } from "@workspace/api-client-react";
+import { useGetReferralPage, useCreateLead, useCheckDuplicate, getCheckDuplicateQueryKey, LeadInputLang } from "@workspace/api-client-react";
 import { useParams } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -40,8 +40,24 @@ export default function ReferralLanding() {
     },
   });
 
+  const watchedMobile = form.watch("mobile");
+  const watchedMembershipId = form.watch("kirimembershipId");
+  const duplicateParams = { mobile: watchedMobile || undefined, membershipId: watchedMembershipId || undefined };
+  const { data: duplicate } = useCheckDuplicate(
+    duplicateParams,
+    { query: { queryKey: getCheckDuplicateQueryKey(duplicateParams), enabled: watchedMobile.length >= 5 || watchedMembershipId.length > 0 } },
+  );
+
   const onSubmit = (data: LeadFormValues) => {
     if (!pageData) return;
+    if (duplicate?.isDuplicate) {
+      toast({
+        title: "Duplicate referral | 重复推荐",
+        description: "This mobile or membership ID already exists in the referral pipeline.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     createLead.mutate({
       data: {
@@ -167,6 +183,12 @@ export default function ReferralLanding() {
                     </FormItem>
                   )}
                 />
+
+                {duplicate?.isDuplicate && (
+                  <p className="text-sm text-destructive">
+                    Duplicate {duplicate.field ?? "record"} found. Please contact Zhengji staff if this is incorrect.
+                  </p>
+                )}
 
                 <FormField
                   control={form.control}

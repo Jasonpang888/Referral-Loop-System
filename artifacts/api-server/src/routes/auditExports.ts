@@ -5,7 +5,7 @@ import { requireAuth, requireRole } from "../lib/auth";
 
 const router: IRouter = Router();
 
-router.get("/audit-log", requireAuth, requireRole("admin", "zhengji_staff"), async (req, res): Promise<void> => {
+router.get("/audit-log", requireAuth, requireRole("super_admin", "brand_admin", "outlet_staff", "finance"), async (req, res): Promise<void> => {
   const { entityType, page = "1", limit = "50" } = req.query as Record<string, string>;
   const entityId = req.query.entityId ? parseInt(req.query.entityId as string, 10) : undefined;
   const pageNum = Math.max(1, parseInt(page, 10));
@@ -75,7 +75,7 @@ function commissionsToCSV(comms: any[]): string {
   return [header, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
 }
 
-router.get("/exports/leads", requireAuth, requireRole("admin", "zhengji_staff"), async (req, res): Promise<void> => {
+router.get("/exports/leads", requireAuth, requireRole("super_admin", "brand_admin", "outlet_staff", "finance"), async (req, res): Promise<void> => {
   const { stage, from, to } = req.query as Record<string, string>;
 
   const conditions: any[] = [];
@@ -96,7 +96,7 @@ router.get("/exports/leads", requireAuth, requireRole("admin", "zhengji_staff"),
   res.json({ csvData, filename, rowCount: leads.length });
 });
 
-router.get("/exports/commissions", requireAuth, requireRole("admin", "zhengji_staff"), async (req, res): Promise<void> => {
+router.get("/exports/commissions", requireAuth, requireRole("super_admin", "brand_admin", "outlet_staff", "finance"), async (req, res): Promise<void> => {
   const { status, from, to } = req.query as Record<string, string>;
 
   const conditions: any[] = [];

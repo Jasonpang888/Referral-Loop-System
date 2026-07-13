@@ -20,6 +20,10 @@ export type UserRole = typeof UserRole[keyof typeof UserRole];
 export const UserRole = {
   super_admin: 'super_admin',
   brand_admin: 'brand_admin',
+  outlet_staff: 'outlet_staff',
+  finance: 'finance',
+  partner_admin: 'partner_admin',
+  partner_staff: 'partner_staff',
   brand_staff: 'brand_staff',
   partner: 'partner',
   admin: 'admin',
@@ -187,11 +191,15 @@ export type StageUpdateStage = typeof StageUpdateStage[keyof typeof StageUpdateS
 
 export const StageUpdateStage = {
   new_lead: 'new_lead',
+  contacted: 'contacted',
   appointment_booked: 'appointment_booked',
   arrived: 'arrived',
   free_consultation_only: 'free_consultation_only',
   first_paid_treatment: 'first_paid_treatment',
   package_purchased: 'package_purchased',
+  repeat_customer: 'repeat_customer',
+  invalid: 'invalid',
+  cancelled: 'cancelled',
   invalid_cancelled: 'invalid_cancelled',
 } as const;
 
@@ -206,6 +214,8 @@ export type PaymentVerificationPaymentType = typeof PaymentVerificationPaymentTy
 export const PaymentVerificationPaymentType = {
   first_paid_treatment: 'first_paid_treatment',
   package_purchased: 'package_purchased',
+  free_consultation_only: 'free_consultation_only',
+  repeat_customer: 'repeat_customer',
 } as const;
 
 export type PaymentVerificationCommissionType = typeof PaymentVerificationCommissionType[keyof typeof PaymentVerificationCommissionType];
@@ -217,7 +227,7 @@ export const PaymentVerificationCommissionType = {
 } as const;
 
 export interface PaymentVerification {
-  netSaleAmount: number;
+  netSaleAmount?: number;
   paymentType: PaymentVerificationPaymentType;
   /** @nullable */
   proofUrl?: string | null;
@@ -232,11 +242,15 @@ export type LeadStage = typeof LeadStage[keyof typeof LeadStage];
 
 export const LeadStage = {
   new_lead: 'new_lead',
+  contacted: 'contacted',
   appointment_booked: 'appointment_booked',
   arrived: 'arrived',
   free_consultation_only: 'free_consultation_only',
   first_paid_treatment: 'first_paid_treatment',
   package_purchased: 'package_purchased',
+  repeat_customer: 'repeat_customer',
+  invalid: 'invalid',
+  cancelled: 'cancelled',
   invalid_cancelled: 'invalid_cancelled',
 } as const;
 
@@ -353,6 +367,8 @@ export interface CommissionAction {
 
 export interface PayoutAction {
   payoutReference: string;
+  /** @nullable */
+  proofUrl?: string | null;
   auditNote?: string;
 }
 
@@ -578,8 +594,18 @@ export interface AuditLogEntry {
   /** @nullable */
   newValue?: string | null;
   /** @nullable */
+  previousAmount?: number | null;
+  /** @nullable */
+  newAmount?: number | null;
+  /** @nullable */
   auditNote?: string | null;
   performedBy: string;
+  /** @nullable */
+  ipAddress?: string | null;
+  /** @nullable */
+  userAgent?: string | null;
+  /** @nullable */
+  sessionId?: string | null;
   createdAt: string;
 }
 

@@ -12,7 +12,7 @@ import { requireAuth, requireRole, hashPassword, generateToken, addAuditLog } fr
 
 const router: IRouter = Router();
 
-router.get("/partners", requireAuth, requireRole("admin", "zhengji_staff"), async (req, res): Promise<void> => {
+router.get("/partners", requireAuth, requireRole("super_admin", "brand_admin", "outlet_staff"), async (req, res): Promise<void> => {
   const partners = await db.select().from(partnersTable).orderBy(desc(partnersTable.createdAt));
   res.json(partners.map(p => ({
     ...p,
@@ -20,7 +20,7 @@ router.get("/partners", requireAuth, requireRole("admin", "zhengji_staff"), asyn
   })));
 });
 
-router.post("/partners", requireAuth, requireRole("admin"), async (req, res): Promise<void> => {
+router.post("/partners", requireAuth, requireRole("super_admin", "brand_admin"), async (req, res): Promise<void> => {
   const { displayName, kirimembershipId, phone, username, password } = req.body;
   if (!displayName || !kirimembershipId || !username || !password) {
     res.status(400).json({ error: "Missing required fields" });
@@ -32,7 +32,7 @@ router.post("/partners", requireAuth, requireRole("admin"), async (req, res): Pr
 
   const [user] = await db
     .insert(usersTable)
-    .values({ username, passwordHash, role: "kiri_partner", displayName })
+    .values({ username, passwordHash, role: "partner_admin", displayName })
     .returning();
 
   const [partner] = await db
@@ -74,7 +74,7 @@ router.get("/partners/:id", requireAuth, async (req, res): Promise<void> => {
 });
 
 // Partner self-service routes
-router.get("/partner/leads", requireAuth, requireRole("kiri_partner"), async (req, res): Promise<void> => {
+router.get("/partner/leads", requireAuth, requireRole("partner_admin", "partner_staff"), async (req, res): Promise<void> => {
   const { userId } = (req as any).user;
   const { stage, page = "1" } = req.query as Record<string, string>;
   const pageNum = Math.max(1, parseInt(page, 10));
@@ -98,7 +98,7 @@ router.get("/partner/leads", requireAuth, requireRole("kiri_partner"), async (re
   });
 });
 
-router.get("/partner/commissions", requireAuth, requireRole("kiri_partner"), async (req, res): Promise<void> => {
+router.get("/partner/commissions", requireAuth, requireRole("partner_admin", "partner_staff"), async (req, res): Promise<void> => {
   const { userId } = (req as any).user;
   const { status, page = "1" } = req.query as Record<string, string>;
   const pageNum = Math.max(1, parseInt(page, 10));
@@ -133,7 +133,7 @@ router.get("/partner/commissions", requireAuth, requireRole("kiri_partner"), asy
   res.json({ commissions: enriched, total: Number(total), page: pageNum, limit: limitNum });
 });
 
-router.get("/partner/stats", requireAuth, requireRole("kiri_partner"), async (req, res): Promise<void> => {
+router.get("/partner/stats", requireAuth, requireRole("partner_admin", "partner_staff"), async (req, res): Promise<void> => {
   const { userId } = (req as any).user;
   const { month } = req.query as { month?: string };
   const targetMonth = month ?? new Date().toISOString().slice(0, 7);
@@ -182,7 +182,7 @@ router.get("/partner/stats", requireAuth, requireRole("kiri_partner"), async (re
   });
 });
 
-router.get("/partner/statement", requireAuth, requireRole("kiri_partner"), async (req, res): Promise<void> => {
+router.get("/partner/statement", requireAuth, requireRole("partner_admin", "partner_staff"), async (req, res): Promise<void> => {
   const { userId } = (req as any).user;
   const { month } = req.query as { month?: string };
   const targetMonth = month ?? new Date().toISOString().slice(0, 7);

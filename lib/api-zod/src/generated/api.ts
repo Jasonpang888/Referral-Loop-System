@@ -28,7 +28,7 @@ export const LoginResponse = zod.object({
   "user": zod.object({
   "id": zod.number(),
   "username": zod.string(),
-  "role": zod.enum(['super_admin', 'brand_admin', 'brand_staff', 'partner', 'admin', 'zhengji_staff', 'kiri_partner']),
+  "role": zod.enum(['super_admin', 'brand_admin', 'outlet_staff', 'finance', 'partner_admin', 'partner_staff', 'brand_staff', 'partner', 'admin', 'zhengji_staff', 'kiri_partner']),
   "displayName": zod.string(),
   "brandId": zod.number().nullish(),
   "partnerId": zod.number().nullish()
@@ -49,7 +49,7 @@ export const LogoutResponse = zod.unknown()
 export const GetMeResponse = zod.object({
   "id": zod.number(),
   "username": zod.string(),
-  "role": zod.enum(['super_admin', 'brand_admin', 'brand_staff', 'partner', 'admin', 'zhengji_staff', 'kiri_partner']),
+  "role": zod.enum(['super_admin', 'brand_admin', 'outlet_staff', 'finance', 'partner_admin', 'partner_staff', 'brand_staff', 'partner', 'admin', 'zhengji_staff', 'kiri_partner']),
   "displayName": zod.string(),
   "brandId": zod.number().nullish(),
   "partnerId": zod.number().nullish()
@@ -269,7 +269,7 @@ export const GetLeadsResponse = zod.object({
   "referralCode": zod.string(),
   "partnerId": zod.number(),
   "partnerName": zod.string().optional(),
-  "stage": zod.enum(['new_lead', 'appointment_booked', 'arrived', 'free_consultation_only', 'first_paid_treatment', 'package_purchased', 'invalid_cancelled']),
+  "stage": zod.enum(['new_lead', 'contacted', 'appointment_booked', 'arrived', 'free_consultation_only', 'first_paid_treatment', 'package_purchased', 'repeat_customer', 'invalid', 'cancelled', 'invalid_cancelled']),
   "selectedOffer": zod.string().optional(),
   "appointmentIntent": zod.string().nullish(),
   "appointmentDate": zod.string().nullish(),
@@ -317,7 +317,7 @@ export const CreateLeadResponse = zod.object({
   "referralCode": zod.string(),
   "partnerId": zod.number(),
   "partnerName": zod.string().optional(),
-  "stage": zod.enum(['new_lead', 'appointment_booked', 'arrived', 'free_consultation_only', 'first_paid_treatment', 'package_purchased', 'invalid_cancelled']),
+  "stage": zod.enum(['new_lead', 'contacted', 'appointment_booked', 'arrived', 'free_consultation_only', 'first_paid_treatment', 'package_purchased', 'repeat_customer', 'invalid', 'cancelled', 'invalid_cancelled']),
   "selectedOffer": zod.string().optional(),
   "appointmentIntent": zod.string().nullish(),
   "appointmentDate": zod.string().nullish(),
@@ -366,7 +366,7 @@ export const GetLeadResponse = zod.object({
   "referralCode": zod.string(),
   "partnerId": zod.number(),
   "partnerName": zod.string().optional(),
-  "stage": zod.enum(['new_lead', 'appointment_booked', 'arrived', 'free_consultation_only', 'first_paid_treatment', 'package_purchased', 'invalid_cancelled']),
+  "stage": zod.enum(['new_lead', 'contacted', 'appointment_booked', 'arrived', 'free_consultation_only', 'first_paid_treatment', 'package_purchased', 'repeat_customer', 'invalid', 'cancelled', 'invalid_cancelled']),
   "selectedOffer": zod.string().optional(),
   "appointmentIntent": zod.string().nullish(),
   "appointmentDate": zod.string().nullish(),
@@ -408,7 +408,7 @@ export const UpdateLeadResponse = zod.object({
   "referralCode": zod.string(),
   "partnerId": zod.number(),
   "partnerName": zod.string().optional(),
-  "stage": zod.enum(['new_lead', 'appointment_booked', 'arrived', 'free_consultation_only', 'first_paid_treatment', 'package_purchased', 'invalid_cancelled']),
+  "stage": zod.enum(['new_lead', 'contacted', 'appointment_booked', 'arrived', 'free_consultation_only', 'first_paid_treatment', 'package_purchased', 'repeat_customer', 'invalid', 'cancelled', 'invalid_cancelled']),
   "selectedOffer": zod.string().optional(),
   "appointmentIntent": zod.string().nullish(),
   "appointmentDate": zod.string().nullish(),
@@ -431,7 +431,7 @@ export const UpdateLeadStageParams = zod.object({
 })
 
 export const UpdateLeadStageBody = zod.object({
-  "stage": zod.enum(['new_lead', 'appointment_booked', 'arrived', 'free_consultation_only', 'first_paid_treatment', 'package_purchased', 'invalid_cancelled']),
+  "stage": zod.enum(['new_lead', 'contacted', 'appointment_booked', 'arrived', 'free_consultation_only', 'first_paid_treatment', 'package_purchased', 'repeat_customer', 'invalid', 'cancelled', 'invalid_cancelled']),
   "auditNote": zod.string().optional()
 })
 
@@ -446,7 +446,7 @@ export const UpdateLeadStageResponse = zod.object({
   "referralCode": zod.string(),
   "partnerId": zod.number(),
   "partnerName": zod.string().optional(),
-  "stage": zod.enum(['new_lead', 'appointment_booked', 'arrived', 'free_consultation_only', 'first_paid_treatment', 'package_purchased', 'invalid_cancelled']),
+  "stage": zod.enum(['new_lead', 'contacted', 'appointment_booked', 'arrived', 'free_consultation_only', 'first_paid_treatment', 'package_purchased', 'repeat_customer', 'invalid', 'cancelled', 'invalid_cancelled']),
   "selectedOffer": zod.string().optional(),
   "appointmentIntent": zod.string().nullish(),
   "appointmentDate": zod.string().nullish(),
@@ -469,8 +469,8 @@ export const VerifyPaymentParams = zod.object({
 })
 
 export const VerifyPaymentBody = zod.object({
-  "netSaleAmount": zod.number(),
-  "paymentType": zod.enum(['first_paid_treatment', 'package_purchased']),
+  "netSaleAmount": zod.number().optional(),
+  "paymentType": zod.enum(['first_paid_treatment', 'package_purchased', 'free_consultation_only', 'repeat_customer']),
   "proofUrl": zod.string().nullish(),
   "auditNote": zod.string().optional(),
   "commissionType": zod.enum(['flat_rm30', 'package_percent']).optional(),
@@ -488,7 +488,7 @@ export const VerifyPaymentResponse = zod.object({
   "referralCode": zod.string(),
   "partnerId": zod.number(),
   "partnerName": zod.string().optional(),
-  "stage": zod.enum(['new_lead', 'appointment_booked', 'arrived', 'free_consultation_only', 'first_paid_treatment', 'package_purchased', 'invalid_cancelled']),
+  "stage": zod.enum(['new_lead', 'contacted', 'appointment_booked', 'arrived', 'free_consultation_only', 'first_paid_treatment', 'package_purchased', 'repeat_customer', 'invalid', 'cancelled', 'invalid_cancelled']),
   "selectedOffer": zod.string().optional(),
   "appointmentIntent": zod.string().nullish(),
   "appointmentDate": zod.string().nullish(),
@@ -662,6 +662,7 @@ export const PayCommissionParams = zod.object({
 
 export const PayCommissionBody = zod.object({
   "payoutReference": zod.string(),
+  "proofUrl": zod.string().nullish(),
   "auditNote": zod.string().optional()
 })
 
@@ -742,7 +743,7 @@ export const GetPartnerLeadsResponse = zod.object({
   "referralCode": zod.string(),
   "partnerId": zod.number(),
   "partnerName": zod.string().optional(),
-  "stage": zod.enum(['new_lead', 'appointment_booked', 'arrived', 'free_consultation_only', 'first_paid_treatment', 'package_purchased', 'invalid_cancelled']),
+  "stage": zod.enum(['new_lead', 'contacted', 'appointment_booked', 'arrived', 'free_consultation_only', 'first_paid_treatment', 'package_purchased', 'repeat_customer', 'invalid', 'cancelled', 'invalid_cancelled']),
   "selectedOffer": zod.string().optional(),
   "appointmentIntent": zod.string().nullish(),
   "appointmentDate": zod.string().nullish(),
@@ -840,7 +841,7 @@ export const GetPartnerStatementResponse = zod.object({
   "referralCode": zod.string(),
   "partnerId": zod.number(),
   "partnerName": zod.string().optional(),
-  "stage": zod.enum(['new_lead', 'appointment_booked', 'arrived', 'free_consultation_only', 'first_paid_treatment', 'package_purchased', 'invalid_cancelled']),
+  "stage": zod.enum(['new_lead', 'contacted', 'appointment_booked', 'arrived', 'free_consultation_only', 'first_paid_treatment', 'package_purchased', 'repeat_customer', 'invalid', 'cancelled', 'invalid_cancelled']),
   "selectedOffer": zod.string().optional(),
   "appointmentIntent": zod.string().nullish(),
   "appointmentDate": zod.string().nullish(),
@@ -1222,8 +1223,13 @@ export const GetAuditLogResponse = zod.object({
   "action": zod.string(),
   "previousValue": zod.string().nullish(),
   "newValue": zod.string().nullish(),
+  "previousAmount": zod.number().nullish(),
+  "newAmount": zod.number().nullish(),
   "auditNote": zod.string().nullish(),
   "performedBy": zod.string(),
+  "ipAddress": zod.string().nullish(),
+  "userAgent": zod.string().nullish(),
+  "sessionId": zod.string().nullish(),
   "createdAt": zod.string()
 })),
   "total": zod.number(),

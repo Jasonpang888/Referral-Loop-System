@@ -12,4 +12,6 @@ export type PaymentVerificationPaymentType = typeof PaymentVerificationPaymentTy
 export const PaymentVerificationPaymentType = {
   first_paid_treatment: 'first_paid_treatment',
   package_purchased: 'package_purchased',
+  free_consultation_only: 'free_consultation_only',
+  repeat_customer: 'repeat_customer',
 } as const;

@@ -21,7 +21,7 @@ router.get("/campaigns", requireAuth, async (req, res): Promise<void> => {
   res.json(campaigns.map(formatCampaign));
 });
 
-router.post("/campaigns", requireAuth, requireRole("admin"), async (req, res): Promise<void> => {
+router.post("/campaigns", requireAuth, requireRole("super_admin", "brand_admin"), async (req, res): Promise<void> => {
   const {
     name, nameZh, description, startDate, endDate,
     flatRewardAmount, packageCommissionMin, packageCommissionMax,
@@ -70,7 +70,7 @@ router.get("/campaigns/:id", requireAuth, async (req, res): Promise<void> => {
   res.json(formatCampaign(campaign));
 });
 
-router.patch("/campaigns/:id", requireAuth, requireRole("admin"), async (req, res): Promise<void> => {
+router.patch("/campaigns/:id", requireAuth, requireRole("super_admin", "brand_admin"), async (req, res): Promise<void> => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid ID" }); return; }

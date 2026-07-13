@@ -1,9 +1,15 @@
 import { Router, type IRouter } from "express";
 import { db, commissionsTable, leadsTable, partnersTable, auditLogTable } from "@workspace/db";
 import { eq, and, desc, count } from "drizzle-orm";
-import { requireAuth, requireRole, addAuditLog } from "../lib/auth";
+import { requireAuth, requireRole, addAuditLog, getAuditContext } from "../lib/auth";
 
 const router: IRouter = Router();
+
+function parseId(raw: string | string[] | undefined): number | null {
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  const id = Number.parseInt(value ?? "", 10);
+  return Number.isNaN(id) ? null : id;
+}
 
 async function enrichCommission(comm: any) {
   const [lead] = await db.select().from(leadsTable).where(eq(leadsTable.id, comm.leadId));
@@ -12,9 +18,9 @@ async function enrichCommission(comm: any) {
     ...comm,
     leadName: lead?.name ?? "Unknown",
     partnerName: partner?.displayName ?? "Unknown",
-    amount: parseFloat(comm.amount),
-    commissionRate: comm.commissionRate != null ? parseFloat(comm.commissionRate) : null,
-    netSaleAmount: comm.netSaleAmount != null ? parseFloat(comm.netSaleAmount) : null,
+    amount: Number.parseFloat(comm.amount),
+    commissionRate: comm.commissionRate != null ? Number.parseFloat(comm.commissionRate) : null,
+    netSaleAmount: comm.netSaleAmount != null ? Number.parseFloat(comm.netSaleAmount) : null,
     approvedAt: comm.approvedAt?.toISOString() ?? null,
     paidAt: comm.paidAt?.toISOString() ?? null,
     createdAt: comm.createdAt.toISOString(),
@@ -22,10 +28,10 @@ async function enrichCommission(comm: any) {
   };
 }
 
-router.get("/commissions", requireAuth, requireRole("admin", "zhengji_staff"), async (req, res): Promise<void> => {
+router.get("/commissions", requireAuth, requireRole("super_admin", "brand_admin", "outlet_staff", "finance"), async (req, res): Promise<void> => {
   const { status, page = "1", limit = "20" } = req.query as Record<string, string>;
-  const pageNum = Math.max(1, parseInt(page, 10));
-  const limitNum = Math.min(100, parseInt(limit, 10));
+  const pageNum = Math.max(1, Number.parseInt(page, 10));
+  const limitNum = Math.min(100, Number.parseInt(limit, 10));
   const offset = (pageNum - 1) * limitNum;
 
   const conditions = [];
@@ -41,9 +47,8 @@ router.get("/commissions", requireAuth, requireRole("admin", "zhengji_staff"), a
 });
 
 router.get("/commissions/:id", requireAuth, async (req, res): Promise<void> => {
-  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-  const id = parseInt(raw, 10);
-  if (isNaN(id)) { res.status(400).json({ error: "Invalid ID" }); return; }
+  const id = parseId(req.params.id);
+  if (id == null) { res.status(400).json({ error: "Invalid ID" }); return; }
 
   const [comm] = await db.select().from(commissionsTable).where(eq(commissionsTable.id, id));
   if (!comm) { res.status(404).json({ error: "Not found" }); return; }
@@ -51,20 +56,23 @@ router.get("/commissions/:id", requireAuth, async (req, res): Promise<void> => {
   res.json(await enrichCommission(comm));
 });
 
-router.patch("/commissions/:id/approve", requireAuth, requireRole("admin", "zhengji_staff"), async (req, res): Promise<void> => {
-  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-  const id = parseInt(raw, 10);
-  if (isNaN(id)) { res.status(400).json({ error: "Invalid ID" }); return; }
+router.patch("/commissions/:id/approve", requireAuth, requireRole("super_admin", "brand_admin", "outlet_staff"), async (req, res): Promise<void> => {
+  const id = parseId(req.params.id);
+  if (id == null) { res.status(400).json({ error: "Invalid ID" }); return; }
 
   const { auditNote } = req.body;
-  const performedBy = (req as any).user?.userId?.toString() ?? "staff";
+  const audit = getAuditContext(req);
 
   const [comm] = await db.select().from(commissionsTable).where(eq(commissionsTable.id, id));
   if (!comm) { res.status(404).json({ error: "Not found" }); return; }
+  if (comm.status !== "pending" && comm.status !== "disputed") {
+    res.status(409).json({ error: "Only pending or disputed commissions can be approved" });
+    return;
+  }
 
   const [updated] = await db
     .update(commissionsTable)
-    .set({ status: "approved", approvedBy: performedBy, approvedAt: new Date(), auditNote: auditNote ?? null })
+    .set({ status: "approved", approvedBy: audit.performedBy, approvedAt: new Date(), auditNote: auditNote ?? null })
     .where(eq(commissionsTable.id, id))
     .returning();
 
@@ -72,25 +80,31 @@ router.patch("/commissions/:id/approve", requireAuth, requireRole("admin", "zhen
     entityType: "commission",
     entityId: id,
     action: "approved",
+    brandId: comm.brandId ?? null,
     previousValue: comm.status,
     newValue: "approved",
+    previousAmount: comm.amount,
+    newAmount: updated.amount,
     auditNote: auditNote ?? null,
-    performedBy,
+    ...audit,
   });
 
   res.json(await enrichCommission(updated));
 });
 
-router.patch("/commissions/:id/reject", requireAuth, requireRole("admin", "zhengji_staff"), async (req, res): Promise<void> => {
-  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-  const id = parseInt(raw, 10);
-  if (isNaN(id)) { res.status(400).json({ error: "Invalid ID" }); return; }
+router.patch("/commissions/:id/reject", requireAuth, requireRole("super_admin", "brand_admin", "outlet_staff"), async (req, res): Promise<void> => {
+  const id = parseId(req.params.id);
+  if (id == null) { res.status(400).json({ error: "Invalid ID" }); return; }
 
   const { auditNote } = req.body;
-  const performedBy = (req as any).user?.userId?.toString() ?? "staff";
+  const audit = getAuditContext(req);
 
   const [comm] = await db.select().from(commissionsTable).where(eq(commissionsTable.id, id));
   if (!comm) { res.status(404).json({ error: "Not found" }); return; }
+  if (comm.status === "paid") {
+    res.status(409).json({ error: "Paid commissions cannot be rejected" });
+    return;
+  }
 
   const [updated] = await db
     .update(commissionsTable)
@@ -102,31 +116,37 @@ router.patch("/commissions/:id/reject", requireAuth, requireRole("admin", "zheng
     entityType: "commission",
     entityId: id,
     action: "rejected",
+    brandId: comm.brandId ?? null,
     previousValue: comm.status,
     newValue: "rejected",
+    previousAmount: comm.amount,
+    newAmount: updated.amount,
     auditNote: auditNote ?? null,
-    performedBy,
+    ...audit,
   });
 
   res.json(await enrichCommission(updated));
 });
 
-router.patch("/commissions/:id/pay", requireAuth, requireRole("admin"), async (req, res): Promise<void> => {
-  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-  const id = parseInt(raw, 10);
-  if (isNaN(id)) { res.status(400).json({ error: "Invalid ID" }); return; }
+router.patch("/commissions/:id/pay", requireAuth, requireRole("super_admin", "finance"), async (req, res): Promise<void> => {
+  const id = parseId(req.params.id);
+  if (id == null) { res.status(400).json({ error: "Invalid ID" }); return; }
 
-  const { payoutReference, auditNote } = req.body;
+  const { payoutReference, proofUrl, auditNote } = req.body;
   if (!payoutReference) { res.status(400).json({ error: "payoutReference required" }); return; }
 
-  const performedBy = (req as any).user?.userId?.toString() ?? "admin";
+  const audit = getAuditContext(req);
 
   const [comm] = await db.select().from(commissionsTable).where(eq(commissionsTable.id, id));
   if (!comm) { res.status(404).json({ error: "Not found" }); return; }
+  if (comm.status !== "approved") {
+    res.status(409).json({ error: "Only approved commissions can be paid" });
+    return;
+  }
 
   const [updated] = await db
     .update(commissionsTable)
-    .set({ status: "paid", payoutReference, paidAt: new Date(), auditNote: auditNote ?? null })
+    .set({ status: "paid", payoutReference, proofUrl: proofUrl ?? comm.proofUrl, paidAt: new Date(), auditNote: auditNote ?? null })
     .where(eq(commissionsTable.id, id))
     .returning();
 
@@ -134,25 +154,31 @@ router.patch("/commissions/:id/pay", requireAuth, requireRole("admin"), async (r
     entityType: "commission",
     entityId: id,
     action: "paid",
+    brandId: comm.brandId ?? null,
     previousValue: comm.status,
     newValue: "paid",
+    previousAmount: comm.amount,
+    newAmount: updated.amount,
     auditNote: `Payout ref: ${payoutReference}${auditNote ? `. ${auditNote}` : ""}`,
-    performedBy,
+    ...audit,
   });
 
   res.json(await enrichCommission(updated));
 });
 
-router.patch("/commissions/:id/dispute", requireAuth, requireRole("admin", "zhengji_staff"), async (req, res): Promise<void> => {
-  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-  const id = parseInt(raw, 10);
-  if (isNaN(id)) { res.status(400).json({ error: "Invalid ID" }); return; }
+router.patch("/commissions/:id/dispute", requireAuth, requireRole("super_admin", "brand_admin", "outlet_staff", "finance"), async (req, res): Promise<void> => {
+  const id = parseId(req.params.id);
+  if (id == null) { res.status(400).json({ error: "Invalid ID" }); return; }
 
   const { auditNote } = req.body;
-  const performedBy = (req as any).user?.userId?.toString() ?? "staff";
+  const audit = getAuditContext(req);
 
   const [comm] = await db.select().from(commissionsTable).where(eq(commissionsTable.id, id));
   if (!comm) { res.status(404).json({ error: "Not found" }); return; }
+  if (comm.status === "paid") {
+    res.status(409).json({ error: "Paid commissions cannot be disputed from this screen" });
+    return;
+  }
 
   const [updated] = await db
     .update(commissionsTable)
@@ -164,10 +190,13 @@ router.patch("/commissions/:id/dispute", requireAuth, requireRole("admin", "zhen
     entityType: "commission",
     entityId: id,
     action: "disputed",
+    brandId: comm.brandId ?? null,
     previousValue: comm.status,
     newValue: "disputed",
+    previousAmount: comm.amount,
+    newAmount: updated.amount,
     auditNote: auditNote ?? null,
-    performedBy,
+    ...audit,
   });
 
   res.json(await enrichCommission(updated));

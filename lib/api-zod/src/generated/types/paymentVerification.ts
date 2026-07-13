@@ -9,7 +9,7 @@ import type { PaymentVerificationCommissionType } from './paymentVerificationCom
 import type { PaymentVerificationPaymentType } from './paymentVerificationPaymentType';
 
 export interface PaymentVerification {
-  netSaleAmount: number;
+  netSaleAmount?: number;
   paymentType: PaymentVerificationPaymentType;
   /** @nullable */
   proofUrl?: string | null;

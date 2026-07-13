@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLogout } from "@workspace/api-client-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { normalizeRole } from "@/lib/roles";
 
 interface NavItem {
   href: string;
@@ -34,16 +35,21 @@ const partnerNav: NavItem[] = [
 ];
 
 function getRoleNav(role?: string): NavItem[] {
-  if (role === "admin") return adminNav;
-  if (role === "zhengji_staff") return staffNav;
-  if (role === "kiri_partner") return partnerNav;
+  const normalized = normalizeRole(role);
+  if (normalized === "super_admin" || normalized === "brand_admin" || normalized === "finance") return adminNav;
+  if (normalized === "outlet_staff") return staffNav;
+  if (normalized === "partner_admin" || normalized === "partner_staff") return partnerNav;
   return [];
 }
 
 function getRoleLabel(role?: string) {
-  if (role === "admin") return { en: "Admin", zh: "管理员" };
-  if (role === "zhengji_staff") return { en: "Zhengji Staff", zh: "正记员工" };
-  if (role === "kiri_partner") return { en: "Kiri Partner", zh: "Kiri合作伙伴" };
+  const normalized = normalizeRole(role);
+  if (normalized === "super_admin") return { en: "Super Admin", zh: "超级管理员" };
+  if (normalized === "brand_admin") return { en: "Brand Admin", zh: "品牌管理员" };
+  if (normalized === "finance") return { en: "Finance", zh: "财务" };
+  if (normalized === "outlet_staff") return { en: "Outlet Staff", zh: "门店员工" };
+  if (normalized === "partner_admin") return { en: "Partner Admin", zh: "合作伙伴管理员" };
+  if (normalized === "partner_staff") return { en: "Partner Staff", zh: "合作伙伴员工" };
   return { en: "User", zh: "用户" };
 }
 

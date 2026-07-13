@@ -1,14 +1,18 @@
-import { pgTable, text, serial, timestamp, integer, boolean, numeric, date, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer, boolean, numeric, date, pgEnum, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
 export const leadStageEnum = pgEnum("lead_stage", [
   "new_lead",
+  "contacted",
   "appointment_booked",
   "arrived",
   "free_consultation_only",
   "first_paid_treatment",
   "package_purchased",
+  "repeat_customer",
+  "invalid",
+  "cancelled",
   "invalid_cancelled",
 ]);
 
@@ -35,7 +39,10 @@ export const leadsTable = pgTable("leads", {
   commissionId: integer("commission_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
-});
+}, (table) => [
+  uniqueIndex("leads_mobile_unique_idx").on(table.mobile),
+  uniqueIndex("leads_membership_unique_idx").on(table.kirimembershipId),
+]);
 
 export const insertLeadSchema = createInsertSchema(leadsTable).omit({ id: true, createdAt: true, updatedAt: true });
 export type InsertLead = z.infer<typeof insertLeadSchema>;

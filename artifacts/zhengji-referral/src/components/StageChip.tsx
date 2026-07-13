@@ -2,11 +2,15 @@ import { cn } from "@/lib/utils";
 
 const STAGE_CONFIG: Record<string, { label: string; labelZh: string; className: string }> = {
   new_lead: { label: "New Lead", labelZh: "新客", className: "bg-blue-100 text-blue-800 border-blue-200" },
+  contacted: { label: "Contacted", labelZh: "已联系", className: "bg-sky-100 text-sky-800 border-sky-200" },
   appointment_booked: { label: "Appt Booked", labelZh: "已预约", className: "bg-purple-100 text-purple-800 border-purple-200" },
   arrived: { label: "Arrived", labelZh: "已到访", className: "bg-yellow-100 text-yellow-800 border-yellow-200" },
   free_consultation_only: { label: "Free Consult", labelZh: "仅免费咨询", className: "bg-orange-100 text-orange-800 border-orange-200" },
   first_paid_treatment: { label: "First Paid", labelZh: "首次付费", className: "bg-emerald-100 text-emerald-800 border-emerald-200" },
   package_purchased: { label: "Package", labelZh: "购买套餐", className: "bg-green-100 text-green-800 border-green-200" },
+  repeat_customer: { label: "Repeat", labelZh: "复诊", className: "bg-stone-100 text-stone-700 border-stone-200" },
+  invalid: { label: "Invalid", labelZh: "无效", className: "bg-gray-100 text-gray-600 border-gray-200" },
+  cancelled: { label: "Cancelled", labelZh: "已取消", className: "bg-gray-100 text-gray-600 border-gray-200" },
   invalid_cancelled: { label: "Invalid", labelZh: "无效取消", className: "bg-gray-100 text-gray-600 border-gray-200" },
 };
 

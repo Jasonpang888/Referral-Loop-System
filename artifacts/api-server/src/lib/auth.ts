@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import crypto from "crypto";
+import { roleMatches } from "./referralRules";
 
 export function hashPassword(password: string): string {
   return crypto.createHash("sha256").update(password + "zhengji_salt_2024").digest("hex");
@@ -47,7 +48,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
 export function requireRole(...roles: string[]) {
   return (req: Request, res: Response, next: NextFunction): void => {
     const user = (req as any).user;
-    if (!user || !roles.includes(user.role)) {
+    if (!user || !roleMatches(user.role, roles)) {
       res.status(403).json({ error: "Forbidden" });
       return;
     }
@@ -55,26 +56,53 @@ export function requireRole(...roles: string[]) {
   };
 }
 
+export function getAuditContext(req: Request) {
+  const actor = (req as any).user?.userId?.toString() ?? "system";
+  const forwardedFor = req.headers["x-forwarded-for"];
+  const ipAddress = Array.isArray(forwardedFor)
+    ? forwardedFor[0]
+    : forwardedFor?.split(",")[0]?.trim() || req.ip || null;
+
+  return {
+    performedBy: actor,
+    ipAddress,
+    userAgent: req.headers["user-agent"] ?? null,
+    sessionId: req.headers["x-session-id"]?.toString() ?? null,
+  };
+}
+
 export function addAuditLog(
   db: any,
   auditLogTable: any,
   params: {
+    brandId?: number | null;
     entityType: string;
     entityId: number;
     action: string;
     previousValue?: string | null;
     newValue?: string | null;
+    previousAmount?: string | number | null;
+    newAmount?: string | number | null;
     auditNote?: string | null;
     performedBy: string;
+    ipAddress?: string | null;
+    userAgent?: string | null;
+    sessionId?: string | null;
   }
 ) {
   return db.insert(auditLogTable).values({
+    brandId: params.brandId ?? null,
     entityType: params.entityType,
     entityId: params.entityId,
     action: params.action,
     previousValue: params.previousValue ?? null,
     newValue: params.newValue ?? null,
+    previousAmount: params.previousAmount != null ? params.previousAmount.toString() : null,
+    newAmount: params.newAmount != null ? params.newAmount.toString() : null,
     auditNote: params.auditNote ?? null,
     performedBy: params.performedBy,
+    ipAddress: params.ipAddress ?? null,
+    userAgent: params.userAgent ?? null,
+    sessionId: params.sessionId ?? null,
   });
 }

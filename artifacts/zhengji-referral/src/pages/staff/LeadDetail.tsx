@@ -14,12 +14,15 @@ import { useToast } from "@/hooks/use-toast";
 
 const STAGES = [
   { value: "new_lead", label: "New Lead | 新客" },
+  { value: "contacted", label: "Contacted | 已联系" },
   { value: "appointment_booked", label: "Appt Booked | 已预约" },
   { value: "arrived", label: "Arrived | 已到访" },
   { value: "free_consultation_only", label: "Free Consult | 仅免费咨询" },
   { value: "first_paid_treatment", label: "First Paid | 首次付费" },
   { value: "package_purchased", label: "Package Purchased | 购买套餐" },
-  { value: "invalid_cancelled", label: "Invalid/Cancelled | 无效取消" },
+  { value: "repeat_customer", label: "Repeat Customer | 复诊客户" },
+  { value: "invalid", label: "Invalid | 无效" },
+  { value: "cancelled", label: "Cancelled | 已取消" },
 ];
 
 export default function LeadDetail() {
@@ -165,6 +168,8 @@ export default function LeadDetail() {
                     <SelectContent>
                       <SelectItem value="first_paid_treatment">First Paid Treatment | 首次付费治疗</SelectItem>
                       <SelectItem value="package_purchased">Package Purchased | 购买套餐</SelectItem>
+                      <SelectItem value="free_consultation_only">Free Consultation Only | 仅免费咨询</SelectItem>
+                      <SelectItem value="repeat_customer">Repeat Customer | 复诊客户</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

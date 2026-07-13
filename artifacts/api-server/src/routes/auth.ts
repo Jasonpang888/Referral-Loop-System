@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { db, usersTable, partnersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { hashPassword, verifyPassword, generateToken, requireAuth } from "../lib/auth";
+import { normalizeRole } from "../lib/referralRules";
 import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
@@ -22,7 +23,7 @@ router.post("/auth/login", async (req, res): Promise<void> => {
   const token = generateToken(user.id, user.role);
 
   let partnerId: number | null = null;
-  if (user.role === "kiri_partner") {
+  if (normalizeRole(user.role) === "partner_admin" || normalizeRole(user.role) === "partner_staff") {
     const [partner] = await db.select().from(partnersTable).where(eq(partnersTable.userId, user.id));
     partnerId = partner?.id ?? null;
   }
@@ -52,7 +53,7 @@ router.get("/auth/me", requireAuth, async (req, res): Promise<void> => {
   }
 
   let partnerId: number | null = null;
-  if (user.role === "kiri_partner") {
+  if (normalizeRole(user.role) === "partner_admin" || normalizeRole(user.role) === "partner_staff") {
     const [partner] = await db.select().from(partnersTable).where(eq(partnersTable.userId, user.id));
     partnerId = partner?.id ?? null;
   }

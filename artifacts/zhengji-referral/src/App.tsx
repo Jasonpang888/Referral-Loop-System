@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import NotFound from "@/pages/not-found";
 import { useEffect } from "react";
 import { Spinner } from "@/components/ui/spinner";
+import { dashboardForRole, hasRole } from "@/lib/roles";
 
 import Login from "@/pages/Login";
 import ReferralLanding from "@/pages/ref/ReferralLanding";
@@ -43,9 +44,8 @@ function ProtectedRoute({ component: Component, roles, ...rest }: { component: R
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       setLocation("/login");
-    } else if (!isLoading && isAuthenticated && user && roles.length > 0 && !roles.includes(user.role)) {
-      const fallback = user.role === "admin" ? "/admin" : user.role === "zhengji_staff" ? "/staff" : "/partner";
-      setLocation(fallback);
+    } else if (!isLoading && isAuthenticated && user && roles.length > 0 && !hasRole(user.role, roles)) {
+      setLocation(dashboardForRole(user.role));
     }
   }, [isLoading, isAuthenticated, user, setLocation]);
 
@@ -66,9 +66,7 @@ function RoleRouter() {
 
   useEffect(() => {
     if (!isLoading && isAuthenticated && location === "/") {
-      if (user?.role === "admin") setLocation("/admin");
-      else if (user?.role === "zhengji_staff") setLocation("/staff");
-      else if (user?.role === "kiri_partner") setLocation("/partner");
+      setLocation(dashboardForRole(user?.role));
     } else if (!isLoading && !isAuthenticated && location === "/") {
       setLocation("/login");
     }
@@ -80,24 +78,24 @@ function RoleRouter() {
       <Route path="/ref/:code" component={ReferralLanding} />
 
       {/* Admin routes */}
-      <Route path="/admin" component={() => <ProtectedRoute component={AdminDashboard} roles={["admin"]} />} />
-      <Route path="/admin/campaigns" component={() => <ProtectedRoute component={CampaignsPage} roles={["admin"]} />} />
-      <Route path="/admin/partners" component={() => <ProtectedRoute component={PartnersPage} roles={["admin"]} />} />
-      <Route path="/admin/payouts" component={() => <ProtectedRoute component={PayoutsPage} roles={["admin"]} />} />
-      <Route path="/admin/audit" component={() => <ProtectedRoute component={AuditPage} roles={["admin"]} />} />
-      <Route path="/admin/exports" component={() => <ProtectedRoute component={ExportsPage} roles={["admin"]} />} />
+      <Route path="/admin" component={() => <ProtectedRoute component={AdminDashboard} roles={["super_admin", "brand_admin", "finance"]} />} />
+      <Route path="/admin/campaigns" component={() => <ProtectedRoute component={CampaignsPage} roles={["super_admin", "brand_admin"]} />} />
+      <Route path="/admin/partners" component={() => <ProtectedRoute component={PartnersPage} roles={["super_admin", "brand_admin"]} />} />
+      <Route path="/admin/payouts" component={() => <ProtectedRoute component={PayoutsPage} roles={["super_admin", "finance"]} />} />
+      <Route path="/admin/audit" component={() => <ProtectedRoute component={AuditPage} roles={["super_admin", "brand_admin", "outlet_staff", "finance"]} />} />
+      <Route path="/admin/exports" component={() => <ProtectedRoute component={ExportsPage} roles={["super_admin", "brand_admin", "outlet_staff", "finance"]} />} />
 
       {/* Staff routes */}
-      <Route path="/staff" component={() => <ProtectedRoute component={StaffDashboard} roles={["admin", "zhengji_staff"]} />} />
-      <Route path="/staff/leads/:id" component={({ params }: any) => <ProtectedRoute component={LeadDetail} roles={["admin", "zhengji_staff"]} />} />
-      <Route path="/staff/commissions" component={() => <ProtectedRoute component={StaffCommissions} roles={["admin", "zhengji_staff"]} />} />
-      <Route path="/staff/audit" component={() => <ProtectedRoute component={StaffAudit} roles={["admin", "zhengji_staff"]} />} />
+      <Route path="/staff" component={() => <ProtectedRoute component={StaffDashboard} roles={["super_admin", "brand_admin", "outlet_staff"]} />} />
+      <Route path="/staff/leads/:id" component={({ params }: any) => <ProtectedRoute component={LeadDetail} roles={["super_admin", "brand_admin", "outlet_staff"]} />} />
+      <Route path="/staff/commissions" component={() => <ProtectedRoute component={StaffCommissions} roles={["super_admin", "brand_admin", "outlet_staff"]} />} />
+      <Route path="/staff/audit" component={() => <ProtectedRoute component={StaffAudit} roles={["super_admin", "brand_admin", "outlet_staff"]} />} />
 
       {/* Partner routes */}
-      <Route path="/partner" component={() => <ProtectedRoute component={PartnerDashboard} roles={["kiri_partner"]} />} />
-      <Route path="/partner/leads" component={() => <ProtectedRoute component={PartnerLeads} roles={["kiri_partner"]} />} />
-      <Route path="/partner/commissions" component={() => <ProtectedRoute component={PartnerCommissions} roles={["kiri_partner"]} />} />
-      <Route path="/partner/statement" component={() => <ProtectedRoute component={PartnerStatement} roles={["kiri_partner"]} />} />
+      <Route path="/partner" component={() => <ProtectedRoute component={PartnerDashboard} roles={["partner_admin", "partner_staff"]} />} />
+      <Route path="/partner/leads" component={() => <ProtectedRoute component={PartnerLeads} roles={["partner_admin", "partner_staff"]} />} />
+      <Route path="/partner/commissions" component={() => <ProtectedRoute component={PartnerCommissions} roles={["partner_admin", "partner_staff"]} />} />
+      <Route path="/partner/statement" component={() => <ProtectedRoute component={PartnerStatement} roles={["partner_admin", "partner_staff"]} />} />
 
       <Route component={NotFound} />
     </Switch>
