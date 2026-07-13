@@ -18,7 +18,17 @@ export interface AuditLogEntry {
   /** @nullable */
   newValue?: string | null;
   /** @nullable */
+  previousAmount?: number | null;
+  /** @nullable */
+  newAmount?: number | null;
+  /** @nullable */
   auditNote?: string | null;
   performedBy: string;
+  /** @nullable */
+  ipAddress?: string | null;
+  /** @nullable */
+  userAgent?: string | null;
+  /** @nullable */
+  sessionId?: string | null;
   createdAt: string;
 }

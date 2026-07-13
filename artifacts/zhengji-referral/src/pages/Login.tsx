@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { dashboardForRole } from "@/lib/roles";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect } from "react";
 
@@ -26,9 +27,7 @@ export default function Login() {
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      if (user.role === "admin") setLocation("/admin");
-      else if (user.role === "zhengji_staff") setLocation("/staff");
-      else if (user.role === "kiri_partner") setLocation("/partner");
+      setLocation(dashboardForRole(user.role));
     }
   }, [isAuthenticated, user, setLocation]);
 

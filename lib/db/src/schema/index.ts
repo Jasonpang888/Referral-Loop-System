@@ -5,3 +5,4 @@ export * from "./campaigns";
 export * from "./leads";
 export * from "./commissions";
 export * from "./auditLog";
+export * from "./payoutBatches";

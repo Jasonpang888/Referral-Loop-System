@@ -84,7 +84,7 @@ export default function PartnerDashboard() {
           <strong>How commissions work | 佣金说明:</strong>
           <ul className="mt-1 space-y-1 list-disc ml-4">
             <li>RM30 reward when your referred member completes their first paid treatment | 被推荐客户完成首次付费治疗时获得RM30奖励</li>
-            <li>Alternative: 8-10% of net package value (configured by Zhengji) | 替代方案：套餐净值8-10%（由正记配置）</li>
+            <li>Alternative: 8-10% of net package value (configured by Zhengji) | 替代方案：套餐净值8-10%（由正脊堂配置）</li>
             <li>One commission per referred customer — no repeat visit commissions | 每位推荐客户仅限一次佣金，复诊不计</li>
           </ul>
         </div>

@@ -2,10 +2,11 @@ import { Router, type IRouter } from "express";
 import { db, auditLogTable, leadsTable, commissionsTable, partnersTable } from "@workspace/db";
 import { eq, and, desc, count, sql } from "drizzle-orm";
 import { requireAuth, requireRole } from "../lib/auth";
+import { scopedWhere } from "../lib/accessScope";
 
 const router: IRouter = Router();
 
-router.get("/audit-log", requireAuth, requireRole("admin", "zhengji_staff"), async (req, res): Promise<void> => {
+router.get("/audit-log", requireAuth, requireRole("super_admin", "brand_admin", "outlet_staff", "finance"), async (req, res): Promise<void> => {
   const { entityType, page = "1", limit = "50" } = req.query as Record<string, string>;
   const entityId = req.query.entityId ? parseInt(req.query.entityId as string, 10) : undefined;
   const pageNum = Math.max(1, parseInt(page, 10));
@@ -16,7 +17,7 @@ router.get("/audit-log", requireAuth, requireRole("admin", "zhengji_staff"), asy
   if (entityType) conditions.push(eq(auditLogTable.entityType, entityType));
   if (entityId && !isNaN(entityId)) conditions.push(eq(auditLogTable.entityId, entityId));
 
-  const query = conditions.length > 0 ? and(...conditions) : undefined;
+  const query = scopedWhere(req, auditLogTable.brandId, conditions);
 
   const [{ total }] = await db.select({ total: count() }).from(auditLogTable).where(query);
   const entries = await db
@@ -75,7 +76,7 @@ function commissionsToCSV(comms: any[]): string {
   return [header, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
 }
 
-router.get("/exports/leads", requireAuth, requireRole("admin", "zhengji_staff"), async (req, res): Promise<void> => {
+router.get("/exports/leads", requireAuth, requireRole("super_admin", "brand_admin", "outlet_staff", "finance"), async (req, res): Promise<void> => {
   const { stage, from, to } = req.query as Record<string, string>;
 
   const conditions: any[] = [];
@@ -83,7 +84,7 @@ router.get("/exports/leads", requireAuth, requireRole("admin", "zhengji_staff"),
   if (from) conditions.push(sql`${leadsTable.createdAt} >= ${from}::date`);
   if (to) conditions.push(sql`${leadsTable.createdAt} <= ${to}::date`);
 
-  const leads = await db.select().from(leadsTable).where(conditions.length > 0 ? and(...conditions) : undefined).orderBy(desc(leadsTable.createdAt));
+  const leads = await db.select().from(leadsTable).where(scopedWhere(req, leadsTable.brandId, conditions)).orderBy(desc(leadsTable.createdAt));
 
   const enriched = await Promise.all(leads.map(async l => {
     const [partner] = await db.select().from(partnersTable).where(eq(partnersTable.id, l.partnerId));
@@ -96,7 +97,7 @@ router.get("/exports/leads", requireAuth, requireRole("admin", "zhengji_staff"),
   res.json({ csvData, filename, rowCount: leads.length });
 });
 
-router.get("/exports/commissions", requireAuth, requireRole("admin", "zhengji_staff"), async (req, res): Promise<void> => {
+router.get("/exports/commissions", requireAuth, requireRole("super_admin", "brand_admin", "outlet_staff", "finance"), async (req, res): Promise<void> => {
   const { status, from, to } = req.query as Record<string, string>;
 
   const conditions: any[] = [];
@@ -104,7 +105,7 @@ router.get("/exports/commissions", requireAuth, requireRole("admin", "zhengji_st
   if (from) conditions.push(sql`${commissionsTable.createdAt} >= ${from}::date`);
   if (to) conditions.push(sql`${commissionsTable.createdAt} <= ${to}::date`);
 
-  const comms = await db.select().from(commissionsTable).where(conditions.length > 0 ? and(...conditions) : undefined).orderBy(desc(commissionsTable.createdAt));
+  const comms = await db.select().from(commissionsTable).where(scopedWhere(req, commissionsTable.brandId, conditions)).orderBy(desc(commissionsTable.createdAt));
 
   const enriched = await Promise.all(comms.map(async c => {
     const [lead] = await db.select().from(leadsTable).where(eq(leadsTable.id, c.leadId));

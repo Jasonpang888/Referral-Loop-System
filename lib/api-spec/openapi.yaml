@@ -985,7 +985,7 @@ components:
           type: string
         role:
           type: string
-          enum: [super_admin, brand_admin, brand_staff, partner, admin, zhengji_staff, kiri_partner]
+          enum: [super_admin, brand_admin, outlet_staff, finance, partner_admin, partner_staff, brand_staff, partner, admin, zhengji_staff, kiri_partner]
         displayName:
           type: string
         brandId:
@@ -1224,19 +1224,19 @@ components:
       properties:
         stage:
           type: string
-          enum: [new_lead, appointment_booked, arrived, free_consultation_only, first_paid_treatment, package_purchased, invalid_cancelled]
+          enum: [new_lead, contacted, appointment_booked, arrived, free_consultation_only, first_paid_treatment, package_purchased, repeat_customer, invalid, cancelled, invalid_cancelled]
         auditNote:
           type: string
 
     PaymentVerification:
       type: object
-      required: [netSaleAmount, paymentType]
+      required: [paymentType]
       properties:
         netSaleAmount:
           type: number
         paymentType:
           type: string
-          enum: [first_paid_treatment, package_purchased]
+          enum: [first_paid_treatment, package_purchased, free_consultation_only, repeat_customer]
         proofUrl:
           type: ["string", "null"]
         auditNote:
@@ -1273,7 +1273,7 @@ components:
           type: string
         stage:
           type: string
-          enum: [new_lead, appointment_booked, arrived, free_consultation_only, first_paid_treatment, package_purchased, invalid_cancelled]
+          enum: [new_lead, contacted, appointment_booked, arrived, free_consultation_only, first_paid_treatment, package_purchased, repeat_customer, invalid, cancelled, invalid_cancelled]
         selectedOffer:
           type: string
         appointmentIntent:
@@ -1395,6 +1395,8 @@ components:
       properties:
         payoutReference:
           type: string
+        proofUrl:
+          type: ["string", "null"]
         auditNote:
           type: string
 
@@ -1710,10 +1712,20 @@ components:
           type: ["string", "null"]
         newValue:
           type: ["string", "null"]
+        previousAmount:
+          type: ["number", "null"]
+        newAmount:
+          type: ["number", "null"]
         auditNote:
           type: ["string", "null"]
         performedBy:
           type: string
+        ipAddress:
+          type: ["string", "null"]
+        userAgent:
+          type: ["string", "null"]
+        sessionId:
+          type: ["string", "null"]
         createdAt:
           type: string
 

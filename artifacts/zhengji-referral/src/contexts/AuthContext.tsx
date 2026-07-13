@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useGetMe, getGetMeQueryKey, User } from "@workspace/api-client-react";
 
 interface AuthContextType {
@@ -11,6 +12,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(localStorage.getItem("zhengji_token"));
+  const queryClient = useQueryClient();
   
   const { data: user, isLoading, isError } = useGetMe({
     query: {
@@ -22,18 +24,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const handleStorageChange = () => {
-      setToken(localStorage.getItem("zhengji_token"));
+      const nextToken = localStorage.getItem("zhengji_token");
+      setToken(nextToken);
+      if (!nextToken) {
+        queryClient.removeQueries({ queryKey: getGetMeQueryKey() });
+      }
     };
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
+  }, [queryClient]);
+
+  const authUser = token && !isError ? user ?? null : null;
 
   return (
     <AuthContext.Provider
       value={{
-        user: user || null,
+        user: authUser,
         isLoading: isLoading && !!token,
-        isAuthenticated: !!user && !isError,
+        isAuthenticated: !!authUser,
       }}
     >
       {children}

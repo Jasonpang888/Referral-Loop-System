@@ -5,6 +5,10 @@ import { z } from "zod/v4";
 export const userRoleEnum = pgEnum("user_role", [
   "super_admin",
   "brand_admin",
+  "outlet_staff",
+  "finance",
+  "partner_admin",
+  "partner_staff",
   "brand_staff",
   "partner",
   "admin",

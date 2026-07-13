@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLogout } from "@workspace/api-client-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { normalizeRole } from "@/lib/roles";
 
 interface NavItem {
   href: string;
@@ -20,6 +21,12 @@ const adminNav: NavItem[] = [
   { href: "/admin/exports", label: "Exports", labelZh: "导出数据" },
 ];
 
+const brandAdminNav = adminNav.filter((item) => item.href !== "/admin/payouts");
+
+const financeNav = adminNav.filter((item) =>
+  ["/admin", "/admin/payouts", "/admin/audit", "/admin/exports"].includes(item.href),
+);
+
 const staffNav: NavItem[] = [
   { href: "/staff", label: "Lead Pipeline", labelZh: "客户管道" },
   { href: "/staff/commissions", label: "Commissions", labelZh: "佣金审批" },
@@ -34,34 +41,39 @@ const partnerNav: NavItem[] = [
 ];
 
 function getRoleNav(role?: string): NavItem[] {
-  if (role === "admin") return adminNav;
-  if (role === "zhengji_staff") return staffNav;
-  if (role === "kiri_partner") return partnerNav;
+  const normalized = normalizeRole(role);
+  if (normalized === "super_admin") return adminNav;
+  if (normalized === "brand_admin") return brandAdminNav;
+  if (normalized === "finance") return financeNav;
+  if (normalized === "outlet_staff") return staffNav;
+  if (normalized === "partner_admin" || normalized === "partner_staff") return partnerNav;
   return [];
 }
 
 function getRoleLabel(role?: string) {
-  if (role === "admin") return { en: "Admin", zh: "管理员" };
-  if (role === "zhengji_staff") return { en: "Zhengji Staff", zh: "正记员工" };
-  if (role === "kiri_partner") return { en: "Kiri Partner", zh: "Kiri合作伙伴" };
+  const normalized = normalizeRole(role);
+  if (normalized === "super_admin") return { en: "Super Admin", zh: "超级管理员" };
+  if (normalized === "brand_admin") return { en: "Brand Admin", zh: "品牌管理员" };
+  if (normalized === "finance") return { en: "Finance", zh: "财务" };
+  if (normalized === "outlet_staff") return { en: "Outlet Staff", zh: "门店员工" };
+  if (normalized === "partner_admin") return { en: "Partner Admin", zh: "合作伙伴管理员" };
+  if (normalized === "partner_staff") return { en: "Partner Staff", zh: "合作伙伴员工" };
   return { en: "User", zh: "用户" };
 }
 
 export default function Layout({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const logout = useLogout();
 
   const nav = getRoleNav(user?.role);
   const roleLabel = getRoleLabel(user?.role);
 
   const handleLogout = () => {
-    logout.mutate(undefined, {
-      onSettled: () => {
-        localStorage.removeItem("zhengji_token");
-        window.dispatchEvent(new Event("storage"));
-      },
-    });
+    localStorage.removeItem("zhengji_token");
+    window.dispatchEvent(new Event("storage"));
+    setLocation("/login");
+    logout.mutate(undefined);
   };
 
   return (
@@ -69,7 +81,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       {/* Sidebar */}
       <aside className="hidden md:flex flex-col w-60 bg-sidebar text-sidebar-foreground flex-shrink-0">
         <div className="p-5 border-b border-sidebar-border">
-          <h1 className="text-lg font-serif font-bold leading-tight">正记健康</h1>
+          <h1 className="text-lg font-serif font-bold leading-tight">正脊堂</h1>
           <p className="text-xs text-sidebar-foreground/70 mt-0.5 tracking-wider uppercase">Zhengji Wellness</p>
         </div>
         <div className="px-3 py-2 border-b border-sidebar-border">
@@ -107,6 +119,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             variant="outline"
             className="w-full text-xs border-sidebar-border text-sidebar-foreground bg-transparent hover:bg-sidebar-accent"
             onClick={handleLogout}
+            disabled={logout.isPending}
           >
             Logout | 登出
           </Button>
@@ -116,10 +129,10 @@ export default function Layout({ children }: { children: ReactNode }) {
       {/* Mobile top bar */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-sidebar text-sidebar-foreground px-4 py-3 flex items-center justify-between">
         <div>
-          <h1 className="text-base font-serif font-bold">正记健康</h1>
+          <h1 className="text-base font-serif font-bold">正脊堂</h1>
           <p className="text-xs text-sidebar-foreground/60">{roleLabel.en}</p>
         </div>
-        <Button size="sm" variant="ghost" className="text-sidebar-foreground text-xs" onClick={handleLogout}>
+        <Button size="sm" variant="ghost" className="text-sidebar-foreground text-xs" onClick={handleLogout} disabled={logout.isPending}>
           Logout
         </Button>
       </div>

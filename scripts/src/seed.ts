@@ -1,4 +1,5 @@
 import { db, usersTable, partnersTable, campaignsTable, leadsTable, commissionsTable, auditLogTable } from "@workspace/db";
+import { eq } from "drizzle-orm";
 import crypto from "crypto";
 
 function hashPassword(password: string): string {
@@ -12,35 +13,56 @@ async function seed() {
   const [admin] = await db.insert(usersTable).values({
     username: "admin",
     passwordHash: hashPassword("admin123"),
-    role: "admin",
+    role: "super_admin",
     displayName: "Admin User | 管理员",
   }).onConflictDoNothing().returning();
 
   const [staff] = await db.insert(usersTable).values({
     username: "staff",
     passwordHash: hashPassword("staff123"),
-    role: "zhengji_staff",
-    displayName: "Zhengji Staff | 正记员工",
+    role: "outlet_staff",
+    displayName: "Zhengji Staff | 正脊堂员工",
   }).onConflictDoNothing().returning();
+
+  await db.insert(usersTable).values([
+    {
+      username: "brand_admin",
+      passwordHash: hashPassword("brand123"),
+      role: "brand_admin",
+      displayName: "Brand Admin",
+    },
+    {
+      username: "finance",
+      passwordHash: hashPassword("finance123"),
+      role: "finance",
+      displayName: "Finance User",
+    },
+    {
+      username: "partner_staff",
+      passwordHash: hashPassword("partner123"),
+      role: "partner_staff",
+      displayName: "Kiri Partner Staff",
+    },
+  ]).onConflictDoNothing();
 
   const [partnerUser1] = await db.insert(usersTable).values({
     username: "kiri_amy",
     passwordHash: hashPassword("partner123"),
-    role: "kiri_partner",
+    role: "partner_admin",
     displayName: "Amy Tan",
   }).onConflictDoNothing().returning();
 
   const [partnerUser2] = await db.insert(usersTable).values({
     username: "kiri_james",
     passwordHash: hashPassword("partner123"),
-    role: "kiri_partner",
+    role: "partner_admin",
     displayName: "James Lim",
   }).onConflictDoNothing().returning();
 
   const [partnerUser3] = await db.insert(usersTable).values({
     username: "kiri_mei",
     passwordHash: hashPassword("partner123"),
-    role: "kiri_partner",
+    role: "partner_admin",
     displayName: "Mei Ling",
   }).onConflictDoNothing().returning();
 
@@ -49,7 +71,7 @@ async function seed() {
   // Create campaign
   const [campaign] = await db.insert(campaignsTable).values({
     name: "Kiri Bar × Zhengji Q3 2026",
-    nameZh: "Kiri Bar × 正记健康 2026年第三季度",
+    nameZh: "Kiri Bar × 正脊堂 2026年第三季度",
     description: "Summer wellness referral campaign | 夏季健康推荐活动",
     startDate: "2026-07-01",
     endDate: "2026-09-30",
@@ -63,7 +85,7 @@ async function seed() {
 
   const [campaign2] = await db.insert(campaignsTable).values({
     name: "Kiri Bar × Zhengji Q1 2026 (Ended)",
-    nameZh: "Kiri Bar × 正记健康 2026年第一季度（已结束）",
+    nameZh: "Kiri Bar × 正脊堂 2026年第一季度（已结束）",
     description: "New Year referral campaign | 新年健康推荐活动",
     startDate: "2026-01-01",
     endDate: "2026-03-31",
@@ -215,9 +237,7 @@ async function seed() {
 
     if (comm) {
       // Update lead's commissionId
-      await db.update(leadsTable).set({ commissionId: comm.id }).where(
-        (await import("drizzle-orm")).eq(leadsTable.id, lead.id)
-      );
+      await db.update(leadsTable).set({ commissionId: comm.id }).where(eq(leadsTable.id, lead.id));
     }
   }
 
@@ -231,7 +251,7 @@ async function seed() {
     
     // Sum commission from DB
     const comms = await db.select().from(commissionsTable).where(
-      (await import("drizzle-orm")).eq(commissionsTable.partnerId, partner.id)
+      eq(commissionsTable.partnerId, partner.id)
     );
     const totalComm = comms.reduce((s, c) => s + parseFloat(c.amount), 0);
 
@@ -239,7 +259,7 @@ async function seed() {
       totalLeads: pLeads.length,
       totalConversions: pConversions.length,
       totalCommissionEarned: totalComm.toFixed(2),
-    }).where((await import("drizzle-orm")).eq(partnersTable.id, partner.id));
+    }).where(eq(partnersTable.id, partner.id));
   }
 
   // Add audit log entries
