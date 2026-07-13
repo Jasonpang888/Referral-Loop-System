@@ -81,7 +81,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       {/* Sidebar */}
       <aside className="hidden md:flex flex-col w-60 bg-sidebar text-sidebar-foreground flex-shrink-0">
         <div className="p-5 border-b border-sidebar-border">
-          <h1 className="text-lg font-serif font-bold leading-tight">正记健康</h1>
+          <h1 className="text-lg font-serif font-bold leading-tight">正脊堂</h1>
           <p className="text-xs text-sidebar-foreground/70 mt-0.5 tracking-wider uppercase">Zhengji Wellness</p>
         </div>
         <div className="px-3 py-2 border-b border-sidebar-border">
@@ -129,7 +129,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       {/* Mobile top bar */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-sidebar text-sidebar-foreground px-4 py-3 flex items-center justify-between">
         <div>
-          <h1 className="text-base font-serif font-bold">正记健康</h1>
+          <h1 className="text-base font-serif font-bold">正脊堂</h1>
           <p className="text-xs text-sidebar-foreground/60">{roleLabel.en}</p>
         </div>
         <Button size="sm" variant="ghost" className="text-sidebar-foreground text-xs" onClick={handleLogout} disabled={logout.isPending}>
