@@ -6,6 +6,9 @@
  * OpenAPI spec version: 2.0.0
  */
 
-export interface CommissionAction {
-  auditNote?: string;
-}
+export type GetPartnersParams = {
+/**
+ * @nullable
+ */
+brandId?: number | null;
+};

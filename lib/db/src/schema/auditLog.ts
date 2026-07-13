@@ -4,6 +4,7 @@ import { z } from "zod/v4";
 
 export const auditLogTable = pgTable("audit_log", {
   id: serial("id").primaryKey(),
+  brandId: integer("brand_id"),
   entityType: text("entity_type").notNull(),
   entityId: integer("entity_id").notNull(),
   action: text("action").notNull(),

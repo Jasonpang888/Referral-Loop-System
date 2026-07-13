@@ -1,3 +1,4 @@
+export * from "./brands";
 export * from "./users";
 export * from "./partners";
 export * from "./campaigns";

@@ -14,6 +14,7 @@ export const leadStageEnum = pgEnum("lead_stage", [
 
 export const leadsTable = pgTable("leads", {
   id: serial("id").primaryKey(),
+  brandId: integer("brand_id"),
   name: text("name").notNull(),
   nameZh: text("name_zh"),
   mobile: text("mobile").notNull(),

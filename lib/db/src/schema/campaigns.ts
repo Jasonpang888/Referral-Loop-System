@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, boolean, numeric, date, json, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, boolean, numeric, date, json, pgEnum, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -6,6 +6,7 @@ export const commissionTypeEnum = pgEnum("commission_type", ["flat_rm30", "packa
 
 export const campaignsTable = pgTable("campaigns", {
   id: serial("id").primaryKey(),
+  brandId: integer("brand_id"),
   name: text("name").notNull(),
   nameZh: text("name_zh"),
   description: text("description"),

@@ -12,6 +12,7 @@ export const commissionStatusEnum = pgEnum("commission_status", [
 
 export const commissionsTable = pgTable("commissions", {
   id: serial("id").primaryKey(),
+  brandId: integer("brand_id"),
   leadId: integer("lead_id").notNull(),
   partnerId: integer("partner_id").notNull(),
   campaignId: integer("campaign_id"),

@@ -5,10 +5,10 @@
  * Partner Growth Platform — Multi-Brand Referral Management API
  * OpenAPI spec version: 2.0.0
  */
-import type { Commission } from './commission';
+import type { PlatformPartner } from './platformPartner';
 
-export interface CommissionList {
-  commissions: Commission[];
+export interface PlatformPartnerList {
+  partners: PlatformPartner[];
   total: number;
   page: number;
   limit: number;

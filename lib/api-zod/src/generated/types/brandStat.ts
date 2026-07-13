@@ -6,11 +6,14 @@
  * OpenAPI spec version: 2.0.0
  */
 
-export interface PartnerSummary {
-  partnerId: number;
-  partnerName: string;
-  referralCode: string;
+export interface BrandStat {
+  brandId: number;
+  brandName: string;
+  /** @nullable */
+  brandNameZh?: string | null;
+  primaryColor?: string;
+  totalPartners: number;
   totalLeads: number;
   totalConversions: number;
-  totalCommission: number;
+  totalCommissionPaid: number;
 }

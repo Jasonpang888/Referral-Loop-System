@@ -6,19 +6,21 @@
  * OpenAPI spec version: 2.0.0
  */
 
-export interface AuditLogEntry {
+export interface Brand {
   id: number;
+  name: string;
   /** @nullable */
-  brandId?: number | null;
-  entityType: string;
-  entityId: number;
-  action: string;
+  nameZh?: string | null;
   /** @nullable */
-  previousValue?: string | null;
+  description?: string | null;
   /** @nullable */
-  newValue?: string | null;
+  logoUrl?: string | null;
+  primaryColor: string;
+  accentColor: string;
   /** @nullable */
-  auditNote?: string | null;
-  performedBy: string;
+  industry?: string | null;
+  /** @nullable */
+  website?: string | null;
+  isActive: boolean;
   createdAt: string;
 }

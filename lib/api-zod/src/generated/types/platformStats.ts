@@ -5,12 +5,13 @@
  * Partner Growth Platform — Multi-Brand Referral Management API
  * OpenAPI spec version: 2.0.0
  */
+import type { BrandStat } from './brandStat';
 
-export interface PartnerSummary {
-  partnerId: number;
-  partnerName: string;
-  referralCode: string;
+export interface PlatformStats {
+  totalBrands: number;
+  totalPartners: number;
   totalLeads: number;
   totalConversions: number;
-  totalCommission: number;
+  totalCommissionPaid: number;
+  brandBreakdown: BrandStat[];
 }

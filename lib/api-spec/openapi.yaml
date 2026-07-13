@@ -1,14 +1,16 @@
 openapi: 3.1.0
 info:
   title: Api
-  version: 0.1.0
-  description: Zhengji Wellness × Kiri Bar Referral Management API
+  version: 2.0.0
+  description: Partner Growth Platform — Multi-Brand Referral Management API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
   - name: auth
+  - name: brands
+  - name: platform
   - name: referral
   - name: leads
   - name: commissions
@@ -78,6 +80,121 @@ paths:
         "401":
           description: Not authenticated
 
+  /brands:
+    get:
+      operationId: getBrands
+      tags: [brands]
+      summary: List all brands
+      responses:
+        "200":
+          description: Brands list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Brand"
+    post:
+      operationId: createBrand
+      tags: [brands]
+      summary: Create a new brand
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BrandInput"
+      responses:
+        "201":
+          description: Brand created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Brand"
+
+  /brands/{id}:
+    get:
+      operationId: getBrand
+      tags: [brands]
+      summary: Get brand by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Brand
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Brand"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateBrand
+      tags: [brands]
+      summary: Update brand
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BrandUpdate"
+      responses:
+        "200":
+          description: Updated brand
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Brand"
+
+  /platform/stats:
+    get:
+      operationId: getPlatformStats
+      tags: [platform]
+      summary: Get platform-wide statistics (super_admin)
+      responses:
+        "200":
+          description: Platform statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlatformStats"
+
+  /platform/partners:
+    get:
+      operationId: getPlatformPartners
+      tags: [platform]
+      summary: Get all partners across all brands (super_admin)
+      parameters:
+        - name: brandId
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: All partners
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlatformPartnerList"
+
   /referral/{code}:
     get:
       operationId: getReferralPage
@@ -110,6 +227,10 @@ paths:
           schema:
             type: string
         - name: partnerId
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: brandId
           in: query
           schema:
             type: ["integer", "null"]
@@ -166,6 +287,10 @@ paths:
           in: query
           schema:
             type: string
+        - name: brandId
+          in: query
+          schema:
+            type: ["integer", "null"]
       responses:
         "200":
           description: Duplicate check result
@@ -298,6 +423,10 @@ paths:
           schema:
             type: string
         - name: partnerId
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: brandId
           in: query
           schema:
             type: ["integer", "null"]
@@ -440,7 +569,7 @@ paths:
     get:
       operationId: getPartnerLeads
       tags: [partner]
-      summary: Get leads for the authenticated Kiri partner
+      summary: Get leads for the authenticated partner
       parameters:
         - name: stage
           in: query
@@ -462,7 +591,7 @@ paths:
     get:
       operationId: getPartnerCommissions
       tags: [partner]
-      summary: Get commissions for the authenticated Kiri partner
+      summary: Get commissions for the authenticated partner
       parameters:
         - name: status
           in: query
@@ -526,6 +655,10 @@ paths:
           in: query
           schema:
             type: ["integer", "null"]
+        - name: brandId
+          in: query
+          schema:
+            type: ["integer", "null"]
         - name: from
           in: query
           schema:
@@ -552,6 +685,10 @@ paths:
           in: query
           schema:
             type: integer
+        - name: brandId
+          in: query
+          schema:
+            type: ["integer", "null"]
       responses:
         "200":
           description: Monthly trend
@@ -567,6 +704,11 @@ paths:
       operationId: getPipelineBreakdown
       tags: [analytics]
       summary: Get pipeline stage breakdown
+      parameters:
+        - name: brandId
+          in: query
+          schema:
+            type: ["integer", "null"]
       responses:
         "200":
           description: Pipeline breakdown
@@ -582,6 +724,11 @@ paths:
       operationId: getCampaigns
       tags: [campaigns]
       summary: List campaigns
+      parameters:
+        - name: brandId
+          in: query
+          schema:
+            type: ["integer", "null"]
       responses:
         "200":
           description: Campaigns
@@ -655,7 +802,12 @@ paths:
     get:
       operationId: getPartners
       tags: [partner]
-      summary: List all Kiri partners (admin/staff)
+      summary: List partners (admin/staff — brand-scoped)
+      parameters:
+        - name: brandId
+          in: query
+          schema:
+            type: ["integer", "null"]
       responses:
         "200":
           description: Partners list
@@ -668,7 +820,7 @@ paths:
     post:
       operationId: createPartner
       tags: [partner]
-      summary: Create a Kiri partner account
+      summary: Create a partner account
       requestBody:
         required: true
         content:
@@ -716,6 +868,10 @@ paths:
           in: query
           schema:
             type: ["integer", "null"]
+        - name: brandId
+          in: query
+          schema:
+            type: ["integer", "null"]
         - name: page
           in: query
           schema:
@@ -742,6 +898,10 @@ paths:
           in: query
           schema:
             type: string
+        - name: brandId
+          in: query
+          schema:
+            type: ["integer", "null"]
         - name: from
           in: query
           schema:
@@ -768,6 +928,10 @@ paths:
           in: query
           schema:
             type: string
+        - name: brandId
+          in: query
+          schema:
+            type: ["integer", "null"]
         - name: from
           in: query
           schema:
@@ -821,11 +985,167 @@ components:
           type: string
         role:
           type: string
-          enum: [admin, zhengji_staff, kiri_partner]
+          enum: [super_admin, brand_admin, brand_staff, partner, admin, zhengji_staff, kiri_partner]
         displayName:
           type: string
+        brandId:
+          type: ["integer", "null"]
         partnerId:
           type: ["integer", "null"]
+
+    Brand:
+      type: object
+      required: [id, name, primaryColor, accentColor, isActive, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        nameZh:
+          type: ["string", "null"]
+        description:
+          type: ["string", "null"]
+        logoUrl:
+          type: ["string", "null"]
+        primaryColor:
+          type: string
+        accentColor:
+          type: string
+        industry:
+          type: ["string", "null"]
+        website:
+          type: ["string", "null"]
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+
+    BrandInput:
+      type: object
+      required: [name, primaryColor, accentColor]
+      properties:
+        name:
+          type: string
+        nameZh:
+          type: string
+        description:
+          type: string
+        logoUrl:
+          type: string
+        primaryColor:
+          type: string
+        accentColor:
+          type: string
+        industry:
+          type: string
+        website:
+          type: string
+
+    BrandUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        nameZh:
+          type: string
+        description:
+          type: string
+        logoUrl:
+          type: string
+        primaryColor:
+          type: string
+        accentColor:
+          type: string
+        industry:
+          type: string
+        website:
+          type: string
+        isActive:
+          type: boolean
+
+    PlatformStats:
+      type: object
+      required: [totalBrands, totalPartners, totalLeads, totalConversions, totalCommissionPaid, brandBreakdown]
+      properties:
+        totalBrands:
+          type: integer
+        totalPartners:
+          type: integer
+        totalLeads:
+          type: integer
+        totalConversions:
+          type: integer
+        totalCommissionPaid:
+          type: number
+        brandBreakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/BrandStat"
+
+    BrandStat:
+      type: object
+      required: [brandId, brandName, totalPartners, totalLeads, totalConversions, totalCommissionPaid]
+      properties:
+        brandId:
+          type: integer
+        brandName:
+          type: string
+        brandNameZh:
+          type: ["string", "null"]
+        primaryColor:
+          type: string
+        totalPartners:
+          type: integer
+        totalLeads:
+          type: integer
+        totalConversions:
+          type: integer
+        totalCommissionPaid:
+          type: number
+
+    PlatformPartner:
+      type: object
+      required: [id, displayName, brandId, brandName, partnerType, referralCode, totalLeads, totalConversions, totalCommissionEarned, isActive]
+      properties:
+        id:
+          type: integer
+        displayName:
+          type: string
+        businessName:
+          type: ["string", "null"]
+        brandId:
+          type: ["integer", "null"]
+        brandName:
+          type: string
+        partnerType:
+          type: string
+        referralCode:
+          type: string
+        totalLeads:
+          type: integer
+        totalConversions:
+          type: integer
+        totalCommissionEarned:
+          type: number
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+
+    PlatformPartnerList:
+      type: object
+      required: [partners, total, page, limit]
+      properties:
+        partners:
+          type: array
+          items:
+            $ref: "#/components/schemas/PlatformPartner"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
 
     ReferralPage:
       type: object
@@ -833,20 +1153,24 @@ components:
       properties:
         partnerName:
           type: string
+        businessName:
+          type: ["string", "null"]
         kirimembershipId:
-          type: string
+          type: ["string", "null"]
         referralCode:
           type: string
         offer:
           type: string
         offerZh:
-          type: string
+          type: ["string", "null"]
         discountPercent:
-          type: number
+          type: ["number", "null"]
         campaignActive:
           type: boolean
         campaignEndDate:
           type: ["string", "null"]
+        brand:
+          $ref: "#/components/schemas/Brand"
 
     LeadInput:
       type: object
@@ -929,6 +1253,8 @@ components:
       properties:
         id:
           type: integer
+        brandId:
+          type: ["integer", "null"]
         name:
           type: string
         nameZh:
@@ -1003,6 +1329,8 @@ components:
       properties:
         id:
           type: integer
+        brandId:
+          type: ["integer", "null"]
         leadId:
           type: integer
         leadName:
@@ -1200,6 +1528,8 @@ components:
       properties:
         id:
           type: integer
+        brandId:
+          type: ["integer", "null"]
         name:
           type: string
         nameZh:
@@ -1232,6 +1562,8 @@ components:
       type: object
       required: [name, startDate, endDate, flatRewardAmount, packageCommissionMin, packageCommissionMax, defaultCommissionType]
       properties:
+        brandId:
+          type: integer
         name:
           type: string
         nameZh:
@@ -1300,19 +1632,30 @@ components:
 
     PartnerProfile:
       type: object
-      required: [id, userId, displayName, referralCode, kirimembershipId, isActive, createdAt]
+      required: [id, userId, displayName, referralCode, partnerType, isActive, createdAt]
       properties:
         id:
           type: integer
         userId:
           type: integer
+        brandId:
+          type: ["integer", "null"]
+        brandName:
+          type: ["string", "null"]
         displayName:
           type: string
+        businessName:
+          type: ["string", "null"]
+        partnerType:
+          type: string
+          enum: [bar, gym, yoga_studio, golf_club, salon, corporate_hr, agent, retailer, other]
         referralCode:
           type: string
         kirimembershipId:
-          type: string
+          type: ["string", "null"]
         phone:
+          type: ["string", "null"]
+        email:
           type: ["string", "null"]
         isActive:
           type: boolean
@@ -1327,13 +1670,22 @@ components:
 
     PartnerInput:
       type: object
-      required: [displayName, kirimembershipId, username, password]
+      required: [displayName, username, password]
       properties:
+        brandId:
+          type: integer
         displayName:
           type: string
+        businessName:
+          type: string
+        partnerType:
+          type: string
+          enum: [bar, gym, yoga_studio, golf_club, salon, corporate_hr, agent, retailer, other]
         kirimembershipId:
           type: string
         phone:
+          type: string
+        email:
           type: string
         username:
           type: string
@@ -1346,6 +1698,8 @@ components:
       properties:
         id:
           type: integer
+        brandId:
+          type: ["integer", "null"]
         entityType:
           type: string
         entityId:
