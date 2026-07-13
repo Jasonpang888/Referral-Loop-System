@@ -2,11 +2,17 @@ import { Router, type IRouter } from "express";
 import { db, auditLogTable, commissionsTable, payoutBatchesTable } from "@workspace/db";
 import { desc, eq, inArray } from "drizzle-orm";
 import { addAuditLog, getAuditContext, requireAuth, requireRole } from "../lib/auth";
+import { scopedWhere } from "../lib/accessScope";
 
 const router: IRouter = Router();
 
-router.get("/payout-batches", requireAuth, requireRole("super_admin", "finance"), async (_req, res): Promise<void> => {
-  const batches = await db.select().from(payoutBatchesTable).orderBy(desc(payoutBatchesTable.createdAt)).limit(100);
+router.get("/payout-batches", requireAuth, requireRole("super_admin", "finance"), async (req, res): Promise<void> => {
+  const batches = await db
+    .select()
+    .from(payoutBatchesTable)
+    .where(scopedWhere(req, payoutBatchesTable.brandId))
+    .orderBy(desc(payoutBatchesTable.createdAt))
+    .limit(100);
   res.json({
     batches: batches.map((batch) => ({
       ...batch,
@@ -32,7 +38,10 @@ router.post("/payout-batches", requireAuth, requireRole("super_admin", "finance"
   }
 
   const uniqueIds = [...new Set(commissionIds.map((id) => Number(id)).filter(Number.isInteger))];
-  const commissions = await db.select().from(commissionsTable).where(inArray(commissionsTable.id, uniqueIds));
+  const commissions = await db
+    .select()
+    .from(commissionsTable)
+    .where(scopedWhere(req, commissionsTable.brandId, [inArray(commissionsTable.id, uniqueIds)]));
   if (commissions.length !== uniqueIds.length) {
     res.status(404).json({ error: "One or more commissions were not found" });
     return;

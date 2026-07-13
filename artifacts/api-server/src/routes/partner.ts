@@ -9,11 +9,16 @@ import {
 } from "@workspace/db";
 import { eq, and, desc, count, sum, sql } from "drizzle-orm";
 import { requireAuth, requireRole, hashPassword, generateToken, addAuditLog } from "../lib/auth";
+import { canAccessBrand, getWritableBrandId, rejectForbiddenBrand, scopedWhere } from "../lib/accessScope";
 
 const router: IRouter = Router();
 
 router.get("/partners", requireAuth, requireRole("super_admin", "brand_admin", "outlet_staff"), async (req, res): Promise<void> => {
-  const partners = await db.select().from(partnersTable).orderBy(desc(partnersTable.createdAt));
+  const partners = await db
+    .select()
+    .from(partnersTable)
+    .where(scopedWhere(req, partnersTable.brandId))
+    .orderBy(desc(partnersTable.createdAt));
   res.json(partners.map(p => ({
     ...p,
     totalCommissionEarned: parseFloat(p.totalCommissionEarned),
@@ -21,7 +26,7 @@ router.get("/partners", requireAuth, requireRole("super_admin", "brand_admin", "
 });
 
 router.post("/partners", requireAuth, requireRole("super_admin", "brand_admin"), async (req, res): Promise<void> => {
-  const { displayName, kirimembershipId, phone, username, password } = req.body;
+  const { displayName, kirimembershipId, phone, username, password, brandId } = req.body;
   if (!displayName || !kirimembershipId || !username || !password) {
     res.status(400).json({ error: "Missing required fields" });
     return;
@@ -29,16 +34,18 @@ router.post("/partners", requireAuth, requireRole("super_admin", "brand_admin"),
 
   const passwordHash = hashPassword(password);
   const referralCode = "KIRI" + kirimembershipId.replace(/\W/g, "").toUpperCase().slice(0, 6);
+  const writableBrandId = getWritableBrandId(req, brandId);
 
   const [user] = await db
     .insert(usersTable)
-    .values({ username, passwordHash, role: "partner_admin", displayName })
+    .values({ username, passwordHash, role: "partner_admin", displayName, brandId: writableBrandId })
     .returning();
 
   const [partner] = await db
     .insert(partnersTable)
     .values({
       userId: user.id,
+      brandId: writableBrandId,
       displayName,
       referralCode,
       kirimembershipId,
@@ -52,6 +59,7 @@ router.post("/partners", requireAuth, requireRole("super_admin", "brand_admin"),
     entityType: "partner",
     entityId: partner.id,
     action: "created",
+    brandId: partner.brandId ?? null,
     newValue: displayName,
     performedBy,
   });
@@ -69,6 +77,7 @@ router.get("/partners/:id", requireAuth, async (req, res): Promise<void> => {
 
   const [partner] = await db.select().from(partnersTable).where(eq(partnersTable.id, id));
   if (!partner) { res.status(404).json({ error: "Not found" }); return; }
+  if (!canAccessBrand(req, partner.brandId)) { rejectForbiddenBrand(res); return; }
 
   res.json({ ...partner, totalCommissionEarned: parseFloat(partner.totalCommissionEarned) });
 });

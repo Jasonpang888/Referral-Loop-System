@@ -2,26 +2,45 @@ import { Request, Response, NextFunction } from "express";
 import crypto from "crypto";
 import { roleMatches } from "./referralRules";
 
+const DEFAULT_PASSWORD_SALT = "zhengji_salt_2024";
+const DEFAULT_SESSION_SECRET = "zhengji_secret_2024";
+
+function getPasswordSalt(): string {
+  return process.env.PASSWORD_SALT ?? DEFAULT_PASSWORD_SALT;
+}
+
+function getSessionSecret(): string {
+  return process.env.SESSION_SECRET ?? DEFAULT_SESSION_SECRET;
+}
+
+export function assertProductionAuthConfig(): void {
+  if (process.env.NODE_ENV !== "production") return;
+  const secret = process.env.SESSION_SECRET;
+  if (!secret || secret.length < 32 || secret === DEFAULT_SESSION_SECRET) {
+    throw new Error("SESSION_SECRET must be set to a unique value with at least 32 characters in production");
+  }
+}
+
 export function hashPassword(password: string): string {
-  return crypto.createHash("sha256").update(password + "zhengji_salt_2024").digest("hex");
+  return crypto.createHash("sha256").update(password + getPasswordSalt()).digest("hex");
 }
 
 export function verifyPassword(password: string, hash: string): boolean {
   return hashPassword(password) === hash;
 }
 
-export function generateToken(userId: number, role: string): string {
-  const payload = JSON.stringify({ userId, role, ts: Date.now() });
-  const sig = crypto.createHash("sha256").update(payload + "zhengji_secret_2024").digest("hex");
+export function generateToken(userId: number, role: string, brandId?: number | null): string {
+  const payload = JSON.stringify({ userId, role, brandId: brandId ?? null, ts: Date.now() });
+  const sig = crypto.createHash("sha256").update(payload + getSessionSecret()).digest("hex");
   return Buffer.from(payload).toString("base64") + "." + sig;
 }
 
-export function verifyToken(token: string): { userId: number; role: string } | null {
+export function verifyToken(token: string): { userId: number; role: string; brandId?: number | null } | null {
   try {
     const [payloadB64, sig] = token.split(".");
     if (!payloadB64 || !sig) return null;
     const payload = Buffer.from(payloadB64, "base64").toString("utf8");
-    const expectedSig = crypto.createHash("sha256").update(payload + "zhengji_secret_2024").digest("hex");
+    const expectedSig = crypto.createHash("sha256").update(payload + getSessionSecret()).digest("hex");
     if (sig !== expectedSig) return null;
     return JSON.parse(payload);
   } catch {

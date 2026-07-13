@@ -12,6 +12,8 @@ Copy `.env.example` and fill:
 
 - `DATABASE_URL`
 - `SESSION_SECRET`
+- `PASSWORD_SALT`
+- `CORS_ORIGIN`
 - `PORT`
 - `VITE_API_BASE_URL`
 - Supabase values if using Supabase storage or managed Postgres.
@@ -25,6 +27,14 @@ pnpm --filter @workspace/db run push
 ```
 
 For Supabase-first environments, review and apply `supabase/migrations/0001_bpgp_core.sql` in the Supabase SQL editor or migration pipeline. It includes the expected uniqueness constraints and RLS posture.
+
+For the Kiri x Zhengji Wellness launch, run the production data preparation after migrations:
+
+```powershell
+pnpm run prepare:kiri-zhengji-live
+```
+
+See `docs/kiri-zhengji-launch-runbook.md` for the exact launch checklist and login matrix.
 
 ## Build
 

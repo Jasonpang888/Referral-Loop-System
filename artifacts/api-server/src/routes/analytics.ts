@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { db, leadsTable, commissionsTable, partnersTable } from "@workspace/db";
 import { and, desc, sql } from "drizzle-orm";
 import { requireAuth, requireRole } from "../lib/auth";
+import { scopedWhere } from "../lib/accessScope";
 
 const router: IRouter = Router();
 
@@ -35,8 +36,8 @@ const ARRIVAL_STAGES = ["arrived", "free_consultation_only", "first_paid_treatme
 const CONVERSION_STAGES = ["first_paid_treatment", "package_purchased"];
 const CLOSED_LOST_STAGES = ["invalid", "cancelled", "invalid_cancelled"];
 
-router.get("/analytics/summary", requireAuth, requireRole("super_admin", "brand_admin", "outlet_staff", "finance"), async (_req, res): Promise<void> => {
-  const allLeads = await db.select().from(leadsTable);
+router.get("/analytics/summary", requireAuth, requireRole("super_admin", "brand_admin", "outlet_staff", "finance"), async (req, res): Promise<void> => {
+  const allLeads = await db.select().from(leadsTable).where(scopedWhere(req, leadsTable.brandId));
 
   const totalLeads = allLeads.length;
   const totalBookings = allLeads.filter((lead) => !["new_lead", "contacted", ...CLOSED_LOST_STAGES].includes(lead.stage)).length;
@@ -47,12 +48,17 @@ router.get("/analytics/summary", requireAuth, requireRole("super_admin", "brand_
   const totalInvalid = allLeads.filter((lead) => CLOSED_LOST_STAGES.includes(lead.stage)).length;
   const totalPaid = totalFirstPaid + totalPackage;
 
-  const allComms = await db.select().from(commissionsTable);
+  const allComms = await db.select().from(commissionsTable).where(scopedWhere(req, commissionsTable.brandId));
   const totalReferralCost = allComms.filter((commission) => commission.commissionType === "flat_rm30").reduce((sum, commission) => sum + Number.parseFloat(commission.amount), 0);
   const totalPackageCommission = allComms.filter((commission) => commission.commissionType === "package_percent").reduce((sum, commission) => sum + Number.parseFloat(commission.amount), 0);
   const totalNetSales = allLeads.reduce((sum, lead) => sum + (lead.netSaleAmount ? Number.parseFloat(lead.netSaleAmount) : 0), 0);
 
-  const partners = await db.select().from(partnersTable).orderBy(desc(partnersTable.totalConversions)).limit(5);
+  const partners = await db
+    .select()
+    .from(partnersTable)
+    .where(scopedWhere(req, partnersTable.brandId))
+    .orderBy(desc(partnersTable.totalConversions))
+    .limit(5);
   const topPartners = partners.map((partner) => ({
     partnerId: partner.id,
     partnerName: partner.displayName,
@@ -94,17 +100,17 @@ router.get("/analytics/monthly-trend", requireAuth, requireRole("super_admin", "
     const monthEnd = nextMonth.toISOString().split("T")[0];
 
     const leads = await db.select().from(leadsTable).where(
-      and(
+      scopedWhere(req, leadsTable.brandId, [
         sql`${leadsTable.createdAt} >= ${monthStart}::date`,
         sql`${leadsTable.createdAt} < ${monthEnd}::date`,
-      ),
+      ]),
     );
 
     const comms = await db.select().from(commissionsTable).where(
-      and(
+      scopedWhere(req, commissionsTable.brandId, [
         sql`${commissionsTable.createdAt} >= ${monthStart}::date`,
         sql`${commissionsTable.createdAt} < ${monthEnd}::date`,
-      ),
+      ]),
     );
 
     trend.push({
@@ -119,8 +125,8 @@ router.get("/analytics/monthly-trend", requireAuth, requireRole("super_admin", "
   res.json(trend);
 });
 
-router.get("/analytics/pipeline", requireAuth, requireRole("super_admin", "brand_admin", "outlet_staff", "finance"), async (_req, res): Promise<void> => {
-  const allLeads = await db.select().from(leadsTable);
+router.get("/analytics/pipeline", requireAuth, requireRole("super_admin", "brand_admin", "outlet_staff", "finance"), async (req, res): Promise<void> => {
+  const allLeads = await db.select().from(leadsTable).where(scopedWhere(req, leadsTable.brandId));
   const breakdown = PIPELINE_STAGES.map((stage) => {
     const count = allLeads.filter((lead) => lead.stage === stage || (stage === "invalid" && lead.stage === "invalid_cancelled")).length;
     return {

@@ -6,6 +6,8 @@
   "scripts": {
     "hello": "tsx ./src/hello.ts",
     "seed": "tsx ./src/seed.ts",
+    "prepare:kiri-zhengji-live": "tsx ./src/prepare-kiri-zhengji-live.ts",
+    "smoke:kiri-zhengji-flow": "tsx ./src/smoke-kiri-zhengji-flow.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {

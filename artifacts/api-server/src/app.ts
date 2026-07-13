@@ -3,8 +3,16 @@ import cors from "cors";
 import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
+import { assertProductionAuthConfig } from "./lib/auth";
 
 const app: Express = express();
+assertProductionAuthConfig();
+
+function parseAllowedOrigins(): string[] | undefined {
+  const raw = process.env.CORS_ORIGIN ?? process.env.FRONTEND_ORIGIN;
+  if (!raw) return undefined;
+  return raw.split(",").map((origin) => origin.trim()).filter(Boolean);
+}
 
 app.use(
   pinoHttp({
@@ -25,7 +33,8 @@ app.use(
     },
   }),
 );
-app.use(cors());
+const allowedOrigins = parseAllowedOrigins();
+app.use(cors(allowedOrigins ? { origin: allowedOrigins, credentials: true } : undefined));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

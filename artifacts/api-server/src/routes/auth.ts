@@ -20,7 +20,7 @@ router.post("/auth/login", async (req, res): Promise<void> => {
     return;
   }
 
-  const token = generateToken(user.id, user.role);
+  const token = generateToken(user.id, user.role, user.brandId);
 
   let partnerId: number | null = null;
   if (normalizeRole(user.role) === "partner_admin" || normalizeRole(user.role) === "partner_staff") {
@@ -34,6 +34,7 @@ router.post("/auth/login", async (req, res): Promise<void> => {
       username: user.username,
       role: user.role,
       displayName: user.displayName,
+      brandId: user.brandId,
       partnerId,
     },
     token,
@@ -63,6 +64,7 @@ router.get("/auth/me", requireAuth, async (req, res): Promise<void> => {
     username: user.username,
     role: user.role,
     displayName: user.displayName,
+    brandId: user.brandId,
     partnerId,
   });
 });

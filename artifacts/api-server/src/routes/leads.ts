@@ -9,6 +9,7 @@ import {
 } from "@workspace/db";
 import { eq, and, like, or, desc, count, sql } from "drizzle-orm";
 import { requireAuth, requireRole, addAuditLog, getAuditContext } from "../lib/auth";
+import { canAccessBrand, rejectForbiddenBrand, scopedWhere } from "../lib/accessScope";
 import {
   LEAD_STAGES,
   assertCommissionCanBeCreated,
@@ -39,18 +40,29 @@ async function enrichLead(lead: any) {
   };
 }
 
-async function findActiveCampaign() {
+async function findActiveCampaign(brandId?: number | null) {
   const today = new Date().toISOString().split("T")[0];
+  const dateConditions = [
+    eq(campaignsTable.isActive, true),
+    sql`${campaignsTable.startDate} <= ${today}`,
+    sql`${campaignsTable.endDate} >= ${today}`,
+  ];
+
+  if (brandId != null) {
+    const [brandCampaign] = await db
+      .select()
+      .from(campaignsTable)
+      .where(and(...dateConditions, eq(campaignsTable.brandId, brandId)))
+      .orderBy(desc(campaignsTable.createdAt))
+      .limit(1);
+    if (brandCampaign) return brandCampaign;
+  }
+
   const [campaign] = await db
     .select()
     .from(campaignsTable)
-    .where(
-      and(
-        eq(campaignsTable.isActive, true),
-        sql`${campaignsTable.startDate} <= ${today}`,
-        sql`${campaignsTable.endDate} >= ${today}`,
-      ),
-    )
+    .where(and(...dateConditions, sql`${campaignsTable.brandId} IS NULL`))
+    .orderBy(desc(campaignsTable.createdAt))
     .limit(1);
   return campaign ?? null;
 }
@@ -73,7 +85,7 @@ router.get("/leads", requireAuth, requireRole("super_admin", "brand_admin", "out
     );
   }
 
-  const query = conditions.length > 0 ? and(...conditions) : undefined;
+  const query = scopedWhere(req, leadsTable.brandId, conditions);
 
   const [{ total }] = await db.select({ total: count() }).from(leadsTable).where(query);
   const leads = await db
@@ -128,7 +140,7 @@ router.post("/leads", async (req, res): Promise<void> => {
     return;
   }
 
-  const campaign = await findActiveCampaign();
+  const campaign = await findActiveCampaign(partner.brandId);
 
   try {
     const [lead] = await db
@@ -178,6 +190,7 @@ router.get("/leads/:id", requireAuth, async (req, res): Promise<void> => {
 
   const [lead] = await db.select().from(leadsTable).where(eq(leadsTable.id, id));
   if (!lead) { res.status(404).json({ error: "Lead not found" }); return; }
+  if (!canAccessBrand(req, lead.brandId)) { rejectForbiddenBrand(res); return; }
 
   res.json(await enrichLead(lead));
 });
@@ -196,6 +209,7 @@ router.patch("/leads/:id", requireAuth, requireRole("super_admin", "brand_admin"
 
   const [existing] = await db.select().from(leadsTable).where(eq(leadsTable.id, id));
   if (!existing) { res.status(404).json({ error: "Lead not found" }); return; }
+  if (!canAccessBrand(req, existing.brandId)) { rejectForbiddenBrand(res); return; }
 
   const [updated] = await db.update(leadsTable).set(updateData).where(eq(leadsTable.id, id)).returning();
   const audit = getAuditContext(req);
@@ -223,6 +237,7 @@ router.patch("/leads/:id/stage", requireAuth, requireRole("super_admin", "brand_
 
   const [existing] = await db.select().from(leadsTable).where(eq(leadsTable.id, id));
   if (!existing) { res.status(404).json({ error: "Lead not found" }); return; }
+  if (!canAccessBrand(req, existing.brandId)) { rejectForbiddenBrand(res); return; }
 
   const [updated] = await db.update(leadsTable).set({ stage }).where(eq(leadsTable.id, id)).returning();
 
@@ -253,6 +268,7 @@ router.post("/leads/:id/verify-payment", requireAuth, requireRole("super_admin",
 
   const [lead] = await db.select().from(leadsTable).where(eq(leadsTable.id, id));
   if (!lead) { res.status(404).json({ error: "Lead not found" }); return; }
+  if (!canAccessBrand(req, lead.brandId)) { rejectForbiddenBrand(res); return; }
 
   const audit = getAuditContext(req);
 
@@ -387,6 +403,7 @@ router.get("/leads/:id/whatsapp-message", requireAuth, async (req, res): Promise
 
   const [lead] = await db.select().from(leadsTable).where(eq(leadsTable.id, id));
   if (!lead) { res.status(404).json({ error: "Lead not found" }); return; }
+  if (!canAccessBrand(req, lead.brandId)) { rejectForbiddenBrand(res); return; }
 
   const [partner] = await db.select().from(partnersTable).where(eq(partnersTable.id, lead.partnerId));
 

@@ -45,4 +45,4 @@ pnpm run typecheck
 pnpm run build
 ```
 
-See `docs/testing.md` and `docs/deployment.md` for operational detail.
+For the Kiri x Zhengji live launch, run `pnpm run prepare:kiri-zhengji-live` after production migrations. See `docs/kiri-zhengji-launch-runbook.md`, `docs/testing.md`, and `docs/deployment.md` for operational detail.

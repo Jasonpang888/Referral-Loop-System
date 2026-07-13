@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { db, campaignsTable, auditLogTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
 import { requireAuth, requireRole, addAuditLog } from "../lib/auth";
+import { canAccessBrand, getWritableBrandId, rejectForbiddenBrand, scopedWhere } from "../lib/accessScope";
 
 const router: IRouter = Router();
 
@@ -17,13 +18,17 @@ function formatCampaign(c: any) {
 }
 
 router.get("/campaigns", requireAuth, async (req, res): Promise<void> => {
-  const campaigns = await db.select().from(campaignsTable).orderBy(desc(campaignsTable.createdAt));
+  const campaigns = await db
+    .select()
+    .from(campaignsTable)
+    .where(scopedWhere(req, campaignsTable.brandId))
+    .orderBy(desc(campaignsTable.createdAt));
   res.json(campaigns.map(formatCampaign));
 });
 
 router.post("/campaigns", requireAuth, requireRole("super_admin", "brand_admin"), async (req, res): Promise<void> => {
   const {
-    name, nameZh, description, startDate, endDate,
+    name, nameZh, description, startDate, endDate, brandId,
     flatRewardAmount, packageCommissionMin, packageCommissionMax,
     defaultCommissionType, tierBonuses
   } = req.body;
@@ -34,6 +39,7 @@ router.post("/campaigns", requireAuth, requireRole("super_admin", "brand_admin")
   }
 
   const [campaign] = await db.insert(campaignsTable).values({
+    brandId: getWritableBrandId(req, brandId),
     name,
     nameZh: nameZh ?? null,
     description: description ?? null,
@@ -66,6 +72,7 @@ router.get("/campaigns/:id", requireAuth, async (req, res): Promise<void> => {
 
   const [campaign] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, id));
   if (!campaign) { res.status(404).json({ error: "Not found" }); return; }
+  if (!canAccessBrand(req, campaign.brandId)) { rejectForbiddenBrand(res); return; }
 
   res.json(formatCampaign(campaign));
 });
@@ -76,12 +83,17 @@ router.patch("/campaigns/:id", requireAuth, requireRole("super_admin", "brand_ad
   if (isNaN(id)) { res.status(400).json({ error: "Invalid ID" }); return; }
 
   const {
-    name, nameZh, description, startDate, endDate, isActive,
+    name, nameZh, description, startDate, endDate, isActive, brandId,
     flatRewardAmount, packageCommissionMin, packageCommissionMax,
     defaultCommissionType, tierBonuses
   } = req.body;
 
+  const [existing] = await db.select().from(campaignsTable).where(eq(campaignsTable.id, id));
+  if (!existing) { res.status(404).json({ error: "Not found" }); return; }
+  if (!canAccessBrand(req, existing.brandId)) { rejectForbiddenBrand(res); return; }
+
   const updateData: any = {};
+  if (brandId != null) updateData.brandId = getWritableBrandId(req, brandId);
   if (name != null) updateData.name = name;
   if (nameZh != null) updateData.nameZh = nameZh;
   if (description != null) updateData.description = description;

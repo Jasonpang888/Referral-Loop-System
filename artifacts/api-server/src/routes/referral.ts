@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import { db, partnersTable, campaignsTable, leadsTable } from "@workspace/db";
-import { eq, and, lte, gte, or } from "drizzle-orm";
+import { eq, and, desc, lte, gte, or, sql } from "drizzle-orm";
+import { normalizeMembershipId, normalizeMobile } from "../lib/referralRules";
 
 const router: IRouter = Router();
 
@@ -18,17 +19,24 @@ router.get("/referral/:code", async (req, res): Promise<void> => {
   }
 
   const today = new Date().toISOString().split("T")[0];
-  const [campaign] = await db
+  const campaignConditions = [
+    eq(campaignsTable.isActive, true),
+    lte(campaignsTable.startDate, today),
+    gte(campaignsTable.endDate, today),
+  ];
+  const [brandCampaign] = partner.brandId == null ? [] : await db
     .select()
     .from(campaignsTable)
-    .where(
-      and(
-        eq(campaignsTable.isActive, true),
-        lte(campaignsTable.startDate, today),
-        gte(campaignsTable.endDate, today)
-      )
-    )
+    .where(and(...campaignConditions, eq(campaignsTable.brandId, partner.brandId)))
+    .orderBy(desc(campaignsTable.createdAt))
     .limit(1);
+  const [fallbackCampaign] = brandCampaign ? [] : await db
+    .select()
+    .from(campaignsTable)
+    .where(and(...campaignConditions, sql`${campaignsTable.brandId} IS NULL`))
+    .orderBy(desc(campaignsTable.createdAt))
+    .limit(1);
+  const campaign = brandCampaign ?? fallbackCampaign;
 
   res.json({
     partnerName: partner.displayName,
@@ -51,8 +59,10 @@ router.get("/leads/check-duplicate", async (req, res): Promise<void> => {
   }
 
   const conditions = [];
-  if (mobile) conditions.push(eq(leadsTable.mobile, mobile));
-  if (membershipId) conditions.push(eq(leadsTable.kirimembershipId, membershipId));
+  const normalizedMobile = mobile ? normalizeMobile(mobile) : null;
+  const normalizedMembershipId = membershipId ? normalizeMembershipId(membershipId) : null;
+  if (normalizedMobile) conditions.push(eq(leadsTable.mobile, normalizedMobile));
+  if (normalizedMembershipId) conditions.push(eq(leadsTable.kirimembershipId, normalizedMembershipId));
 
   const [existing] = await db
     .select()
@@ -65,7 +75,7 @@ router.get("/leads/check-duplicate", async (req, res): Promise<void> => {
     return;
   }
 
-  const field = mobile && existing.mobile === mobile ? "mobile" : "membershipId";
+  const field = normalizedMobile && existing.mobile === normalizedMobile ? "mobile" : "membershipId";
   res.json({ isDuplicate: true, field, existingLeadId: existing.id });
 });
 

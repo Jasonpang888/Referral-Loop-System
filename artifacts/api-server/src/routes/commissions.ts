@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { db, commissionsTable, leadsTable, partnersTable, auditLogTable } from "@workspace/db";
 import { eq, and, desc, count } from "drizzle-orm";
 import { requireAuth, requireRole, addAuditLog, getAuditContext } from "../lib/auth";
+import { canAccessBrand, rejectForbiddenBrand, scopedWhere } from "../lib/accessScope";
 
 const router: IRouter = Router();
 
@@ -37,7 +38,7 @@ router.get("/commissions", requireAuth, requireRole("super_admin", "brand_admin"
   const conditions = [];
   if (status) conditions.push(eq(commissionsTable.status, status as any));
 
-  const query = conditions.length > 0 ? and(...conditions) : undefined;
+  const query = scopedWhere(req, commissionsTable.brandId, conditions);
 
   const [{ total }] = await db.select({ total: count() }).from(commissionsTable).where(query);
   const comms = await db.select().from(commissionsTable).where(query).orderBy(desc(commissionsTable.createdAt)).limit(limitNum).offset(offset);
@@ -52,6 +53,7 @@ router.get("/commissions/:id", requireAuth, async (req, res): Promise<void> => {
 
   const [comm] = await db.select().from(commissionsTable).where(eq(commissionsTable.id, id));
   if (!comm) { res.status(404).json({ error: "Not found" }); return; }
+  if (!canAccessBrand(req, comm.brandId)) { rejectForbiddenBrand(res); return; }
 
   res.json(await enrichCommission(comm));
 });
@@ -65,6 +67,7 @@ router.patch("/commissions/:id/approve", requireAuth, requireRole("super_admin",
 
   const [comm] = await db.select().from(commissionsTable).where(eq(commissionsTable.id, id));
   if (!comm) { res.status(404).json({ error: "Not found" }); return; }
+  if (!canAccessBrand(req, comm.brandId)) { rejectForbiddenBrand(res); return; }
   if (comm.status !== "pending" && comm.status !== "disputed") {
     res.status(409).json({ error: "Only pending or disputed commissions can be approved" });
     return;
@@ -101,6 +104,7 @@ router.patch("/commissions/:id/reject", requireAuth, requireRole("super_admin", 
 
   const [comm] = await db.select().from(commissionsTable).where(eq(commissionsTable.id, id));
   if (!comm) { res.status(404).json({ error: "Not found" }); return; }
+  if (!canAccessBrand(req, comm.brandId)) { rejectForbiddenBrand(res); return; }
   if (comm.status === "paid") {
     res.status(409).json({ error: "Paid commissions cannot be rejected" });
     return;
@@ -139,6 +143,7 @@ router.patch("/commissions/:id/pay", requireAuth, requireRole("super_admin", "fi
 
   const [comm] = await db.select().from(commissionsTable).where(eq(commissionsTable.id, id));
   if (!comm) { res.status(404).json({ error: "Not found" }); return; }
+  if (!canAccessBrand(req, comm.brandId)) { rejectForbiddenBrand(res); return; }
   if (comm.status !== "approved") {
     res.status(409).json({ error: "Only approved commissions can be paid" });
     return;
@@ -175,6 +180,7 @@ router.patch("/commissions/:id/dispute", requireAuth, requireRole("super_admin",
 
   const [comm] = await db.select().from(commissionsTable).where(eq(commissionsTable.id, id));
   if (!comm) { res.status(404).json({ error: "Not found" }); return; }
+  if (!canAccessBrand(req, comm.brandId)) { rejectForbiddenBrand(res); return; }
   if (comm.status === "paid") {
     res.status(409).json({ error: "Paid commissions cannot be disputed from this screen" });
     return;
