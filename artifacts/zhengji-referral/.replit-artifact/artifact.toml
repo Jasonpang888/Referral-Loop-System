@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Zhengji × Kiri Referral"
+version = "1.0.0"
+id = "artifacts/zhengji-referral"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21718
+
+[services.development]
+run = "pnpm --filter @workspace/zhengji-referral run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/zhengji-referral", "run", "build" ]
+publicDir = "artifacts/zhengji-referral/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21718"
+BASE_PATH = "/"

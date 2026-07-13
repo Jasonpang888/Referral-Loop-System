@@ -1,0 +1,4 @@
+- [Orval hook params pattern](orval-hook-params.md) — generated hooks take params as positional first arg, NOT { params: {...} }; also useGetMe/useGetLeadWhatsappMessage need queryKey via getGet*QueryKey() helpers
+- [DB lib rebuild rule](db-lib-rebuild.md) — after editing lib/db schema, always run `pnpm run typecheck:libs` before checking dependent packages; stale .d.ts causes "no exported member" errors
+- [Seed script approach](seed-approach.md) — seed.ts must run from api-server context (has @workspace/db dep); copy to artifacts/api-server/src/ and exec via `pnpm --filter @workspace/api-server exec tsx ./src/seed.ts`
+- [Commission one-time guard](commission-guard.md) — commissionId on leadsTable is the uniqueness guard for one-time-per-lead commission rule; check before creating commission in verify-payment route

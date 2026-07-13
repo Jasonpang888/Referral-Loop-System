@@ -1,22 +1,30 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Zhengji Wellness × Kiri Bar Referral Management API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
-    description: Health operations
+  - name: auth
+  - name: referral
+  - name: leads
+  - name: commissions
+  - name: partner
+  - name: analytics
+  - name: campaigns
+  - name: payouts
+  - name: audit
+  - name: exports
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +32,758 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResult"
+        "401":
+          description: Invalid credentials
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Not authenticated
+
+  /referral/{code}:
+    get:
+      operationId: getReferralPage
+      tags: [referral]
+      summary: Get referral landing page data
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Referral page data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReferralPage"
+        "404":
+          description: Code not found
+
+  /leads:
+    get:
+      operationId: getLeads
+      tags: [leads]
+      summary: List leads
+      parameters:
+        - name: stage
+          in: query
+          schema:
+            type: string
+        - name: partnerId
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of leads
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadList"
+    post:
+      operationId: createLead
+      tags: [leads]
+      summary: Create a new lead (customer signup)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeadInput"
+      responses:
+        "201":
+          description: Lead created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+        "409":
+          description: Duplicate mobile or membership ID
+
+  /leads/check-duplicate:
+    get:
+      operationId: checkDuplicate
+      tags: [leads]
+      summary: Check for duplicate by mobile or membership ID
+      parameters:
+        - name: mobile
+          in: query
+          schema:
+            type: string
+        - name: membershipId
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Duplicate check result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DuplicateCheck"
+
+  /leads/{id}:
+    get:
+      operationId: getLead
+      tags: [leads]
+      summary: Get lead by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Lead details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateLead
+      tags: [leads]
+      summary: Update lead
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeadUpdate"
+      responses:
+        "200":
+          description: Updated lead
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+
+  /leads/{id}/stage:
+    patch:
+      operationId: updateLeadStage
+      tags: [leads]
+      summary: Update lead pipeline stage
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StageUpdate"
+      responses:
+        "200":
+          description: Updated lead
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+
+  /leads/{id}/verify-payment:
+    post:
+      operationId: verifyPayment
+      tags: [leads]
+      summary: Verify payment and trigger commission calculation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentVerification"
+      responses:
+        "200":
+          description: Payment verified, commission calculated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+
+  /leads/{id}/whatsapp-message:
+    get:
+      operationId: getLeadWhatsappMessage
+      tags: [leads]
+      summary: Get WhatsApp-ready confirmation messages for lead (both languages)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: WhatsApp messages in both languages
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WhatsappMessagePair"
+
+  /commissions:
+    get:
+      operationId: getCommissions
+      tags: [commissions]
+      summary: List commissions
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: partnerId
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of commissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommissionList"
+
+  /commissions/{id}:
+    get:
+      operationId: getCommission
+      tags: [commissions]
+      summary: Get commission by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Commission details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Commission"
+
+  /commissions/{id}/approve:
+    patch:
+      operationId: approveCommission
+      tags: [commissions]
+      summary: Approve a commission
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommissionAction"
+      responses:
+        "200":
+          description: Commission approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Commission"
+
+  /commissions/{id}/reject:
+    patch:
+      operationId: rejectCommission
+      tags: [commissions]
+      summary: Reject a commission
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommissionAction"
+      responses:
+        "200":
+          description: Commission rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Commission"
+
+  /commissions/{id}/pay:
+    patch:
+      operationId: payCommission
+      tags: [commissions]
+      summary: Mark commission as paid
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PayoutAction"
+      responses:
+        "200":
+          description: Commission paid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Commission"
+
+  /commissions/{id}/dispute:
+    patch:
+      operationId: disputeCommission
+      tags: [commissions]
+      summary: Dispute a commission
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommissionAction"
+      responses:
+        "200":
+          description: Commission disputed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Commission"
+
+  /partner/leads:
+    get:
+      operationId: getPartnerLeads
+      tags: [partner]
+      summary: Get leads for the authenticated Kiri partner
+      parameters:
+        - name: stage
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Partner's leads
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadList"
+
+  /partner/commissions:
+    get:
+      operationId: getPartnerCommissions
+      tags: [partner]
+      summary: Get commissions for the authenticated Kiri partner
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Partner's commissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommissionList"
+
+  /partner/stats:
+    get:
+      operationId: getPartnerStats
+      tags: [partner]
+      summary: Get partner monthly performance stats
+      parameters:
+        - name: month
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Partner stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartnerStats"
+
+  /partner/statement:
+    get:
+      operationId: getPartnerStatement
+      tags: [partner]
+      summary: Get partner statement for a month
+      parameters:
+        - name: month
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Statement data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartnerStatement"
+
+  /analytics/summary:
+    get:
+      operationId: getAnalyticsSummary
+      tags: [analytics]
+      summary: Get analytics summary (leads, bookings, conversions, costs)
+      parameters:
+        - name: campaignId
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: from
+          in: query
+          schema:
+            type: string
+        - name: to
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Analytics summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyticsSummary"
+
+  /analytics/monthly-trend:
+    get:
+      operationId: getMonthlyTrend
+      tags: [analytics]
+      summary: Get monthly trend data
+      parameters:
+        - name: months
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Monthly trend
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MonthlyTrendItem"
+
+  /analytics/pipeline:
+    get:
+      operationId: getPipelineBreakdown
+      tags: [analytics]
+      summary: Get pipeline stage breakdown
+      responses:
+        "200":
+          description: Pipeline breakdown
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PipelineStageCount"
+
+  /campaigns:
+    get:
+      operationId: getCampaigns
+      tags: [campaigns]
+      summary: List campaigns
+      responses:
+        "200":
+          description: Campaigns
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Campaign"
+    post:
+      operationId: createCampaign
+      tags: [campaigns]
+      summary: Create campaign
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CampaignInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+
+  /campaigns/{id}:
+    get:
+      operationId: getCampaign
+      tags: [campaigns]
+      summary: Get campaign
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Campaign
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+    patch:
+      operationId: updateCampaign
+      tags: [campaigns]
+      summary: Update campaign
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CampaignUpdate"
+      responses:
+        "200":
+          description: Updated campaign
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+
+  /partners:
+    get:
+      operationId: getPartners
+      tags: [partner]
+      summary: List all Kiri partners (admin/staff)
+      responses:
+        "200":
+          description: Partners list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PartnerProfile"
+    post:
+      operationId: createPartner
+      tags: [partner]
+      summary: Create a Kiri partner account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PartnerInput"
+      responses:
+        "201":
+          description: Partner created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartnerProfile"
+
+  /partners/{id}:
+    get:
+      operationId: getPartner
+      tags: [partner]
+      summary: Get partner profile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Partner profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartnerProfile"
+
+  /audit-log:
+    get:
+      operationId: getAuditLog
+      tags: [audit]
+      summary: Get immutable audit log
+      parameters:
+        - name: entityType
+          in: query
+          schema:
+            type: string
+        - name: entityId
+          in: query
+          schema:
+            type: ["integer", "null"]
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Audit log entries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuditLogList"
+
+  /exports/leads:
+    get:
+      operationId: exportLeads
+      tags: [exports]
+      summary: Export leads as CSV
+      parameters:
+        - name: stage
+          in: query
+          schema:
+            type: string
+        - name: from
+          in: query
+          schema:
+            type: string
+        - name: to
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CSV export metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExportResult"
+
+  /exports/commissions:
+    get:
+      operationId: exportCommissions
+      tags: [exports]
+      summary: Export commissions as CSV
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: from
+          in: query
+          schema:
+            type: string
+        - name: to
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CSV export metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExportResult"
+
 components:
   schemas:
     HealthStatus:
@@ -31,6 +791,618 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    LoginInput:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+
+    AuthResult:
+      type: object
+      required: [user, token]
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        token:
+          type: string
+
+    User:
+      type: object
+      required: [id, username, role, displayName]
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        role:
+          type: string
+          enum: [admin, zhengji_staff, kiri_partner]
+        displayName:
+          type: string
+        partnerId:
+          type: ["integer", "null"]
+
+    ReferralPage:
+      type: object
+      required: [partnerName, referralCode, offer, campaignActive]
+      properties:
+        partnerName:
+          type: string
+        kirimembershipId:
+          type: string
+        referralCode:
+          type: string
+        offer:
+          type: string
+        offerZh:
+          type: string
+        discountPercent:
+          type: number
+        campaignActive:
+          type: boolean
+        campaignEndDate:
+          type: ["string", "null"]
+
+    LeadInput:
+      type: object
+      required: [name, mobile, referralCode, consentGiven, selectedOffer]
+      properties:
+        name:
+          type: string
+        nameZh:
+          type: string
+        mobile:
+          type: string
+        whatsapp:
+          type: string
+        kirimembershipId:
+          type: string
+        referralCode:
+          type: string
+        consentGiven:
+          type: boolean
+        selectedOffer:
+          type: string
+        appointmentIntent:
+          type: string
+        preferredDate:
+          type: ["string", "null"]
+        notes:
+          type: string
+        lang:
+          type: string
+          enum: [en, zh]
+
+    LeadUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        mobile:
+          type: string
+        whatsapp:
+          type: string
+        notes:
+          type: string
+        appointmentDate:
+          type: ["string", "null"]
+        auditNote:
+          type: string
+
+    StageUpdate:
+      type: object
+      required: [stage]
+      properties:
+        stage:
+          type: string
+          enum: [new_lead, appointment_booked, arrived, free_consultation_only, first_paid_treatment, package_purchased, invalid_cancelled]
+        auditNote:
+          type: string
+
+    PaymentVerification:
+      type: object
+      required: [netSaleAmount, paymentType]
+      properties:
+        netSaleAmount:
+          type: number
+        paymentType:
+          type: string
+          enum: [first_paid_treatment, package_purchased]
+        proofUrl:
+          type: ["string", "null"]
+        auditNote:
+          type: string
+        commissionType:
+          type: string
+          enum: [flat_rm30, package_percent]
+        commissionRate:
+          type: ["number", "null"]
+
+    Lead:
+      type: object
+      required: [id, name, mobile, stage, referralCode, partnerId, consentGiven, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        nameZh:
+          type: ["string", "null"]
+        mobile:
+          type: string
+        whatsapp:
+          type: ["string", "null"]
+        kirimembershipId:
+          type: ["string", "null"]
+        referralCode:
+          type: string
+        partnerId:
+          type: integer
+        partnerName:
+          type: string
+        stage:
+          type: string
+          enum: [new_lead, appointment_booked, arrived, free_consultation_only, first_paid_treatment, package_purchased, invalid_cancelled]
+        selectedOffer:
+          type: string
+        appointmentIntent:
+          type: ["string", "null"]
+        appointmentDate:
+          type: ["string", "null"]
+        netSaleAmount:
+          type: ["number", "null"]
+        proofUrl:
+          type: ["string", "null"]
+        consentGiven:
+          type: boolean
+        notes:
+          type: ["string", "null"]
+        lang:
+          type: string
+        commissionId:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    LeadList:
+      type: object
+      required: [leads, total, page, limit]
+      properties:
+        leads:
+          type: array
+          items:
+            $ref: "#/components/schemas/Lead"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    DuplicateCheck:
+      type: object
+      required: [isDuplicate]
+      properties:
+        isDuplicate:
+          type: boolean
+        field:
+          type: ["string", "null"]
+        existingLeadId:
+          type: ["integer", "null"]
+
+    Commission:
+      type: object
+      required: [id, leadId, partnerId, amount, commissionType, status, createdAt]
+      properties:
+        id:
+          type: integer
+        leadId:
+          type: integer
+        leadName:
+          type: string
+        partnerId:
+          type: integer
+        partnerName:
+          type: string
+        amount:
+          type: number
+        commissionType:
+          type: string
+          enum: [flat_rm30, package_percent]
+        commissionRate:
+          type: ["number", "null"]
+        netSaleAmount:
+          type: ["number", "null"]
+        status:
+          type: string
+          enum: [pending, approved, paid, disputed, rejected]
+        payoutReference:
+          type: ["string", "null"]
+        proofUrl:
+          type: ["string", "null"]
+        auditNote:
+          type: ["string", "null"]
+        approvedBy:
+          type: ["string", "null"]
+        approvedAt:
+          type: ["string", "null"]
+        paidAt:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    CommissionList:
+      type: object
+      required: [commissions, total, page, limit]
+      properties:
+        commissions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Commission"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    CommissionAction:
+      type: object
+      properties:
+        auditNote:
+          type: string
+
+    PayoutAction:
+      type: object
+      required: [payoutReference]
+      properties:
+        payoutReference:
+          type: string
+        auditNote:
+          type: string
+
+    PartnerStats:
+      type: object
+      required: [month, totalLeads, totalArrivals, totalConversions, totalCommissionPending, totalCommissionApproved, totalCommissionPaid, conversionRate]
+      properties:
+        month:
+          type: string
+        totalLeads:
+          type: integer
+        totalArrivals:
+          type: integer
+        totalConversions:
+          type: integer
+        totalCommissionPending:
+          type: number
+        totalCommissionApproved:
+          type: number
+        totalCommissionPaid:
+          type: number
+        conversionRate:
+          type: number
+        tierBonus:
+          type: ["number", "null"]
+        tierBonusLabel:
+          type: ["string", "null"]
+
+    PartnerStatement:
+      type: object
+      required: [month, partnerName, referralCode, leads, commissions, summary]
+      properties:
+        month:
+          type: string
+        partnerName:
+          type: string
+        referralCode:
+          type: string
+        leads:
+          type: array
+          items:
+            $ref: "#/components/schemas/Lead"
+        commissions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Commission"
+        summary:
+          $ref: "#/components/schemas/PartnerStats"
+
+    AnalyticsSummary:
+      type: object
+      required: [totalLeads, totalBookings, totalArrivals, totalFreeConsultOnly, totalFirstPaidTreatment, totalPackagePurchased, totalInvalid, conversionRate, totalReferralCost, totalPackageCommission, avgReferralCost]
+      properties:
+        totalLeads:
+          type: integer
+        totalBookings:
+          type: integer
+        totalArrivals:
+          type: integer
+        totalFreeConsultOnly:
+          type: integer
+        totalFirstPaidTreatment:
+          type: integer
+        totalPackagePurchased:
+          type: integer
+        totalInvalid:
+          type: integer
+        conversionRate:
+          type: number
+        totalReferralCost:
+          type: number
+        totalPackageCommission:
+          type: number
+        avgReferralCost:
+          type: number
+        totalNetSales:
+          type: number
+        topPartners:
+          type: array
+          items:
+            $ref: "#/components/schemas/PartnerSummary"
+
+    MonthlyTrendItem:
+      type: object
+      required: [month, leads, arrivals, conversions, commissionCost]
+      properties:
+        month:
+          type: string
+        leads:
+          type: integer
+        arrivals:
+          type: integer
+        conversions:
+          type: integer
+        commissionCost:
+          type: number
+
+    PipelineStageCount:
+      type: object
+      required: [stage, count]
+      properties:
+        stage:
+          type: string
+        count:
+          type: integer
+        label:
+          type: string
+        labelZh:
+          type: string
+
+    PartnerSummary:
+      type: object
+      required: [partnerId, partnerName, referralCode, totalLeads, totalConversions, totalCommission]
+      properties:
+        partnerId:
+          type: integer
+        partnerName:
+          type: string
+        referralCode:
+          type: string
+        totalLeads:
+          type: integer
+        totalConversions:
+          type: integer
+        totalCommission:
+          type: number
+
+    Campaign:
+      type: object
+      required: [id, name, startDate, endDate, isActive, flatRewardAmount, packageCommissionMin, packageCommissionMax]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        nameZh:
+          type: ["string", "null"]
+        description:
+          type: ["string", "null"]
+        startDate:
+          type: string
+        endDate:
+          type: string
+        isActive:
+          type: boolean
+        flatRewardAmount:
+          type: number
+        packageCommissionMin:
+          type: number
+        packageCommissionMax:
+          type: number
+        defaultCommissionType:
+          type: string
+          enum: [flat_rm30, package_percent]
+        tierBonuses:
+          type: array
+          items:
+            $ref: "#/components/schemas/TierBonus"
+        createdAt:
+          type: string
+
+    CampaignInput:
+      type: object
+      required: [name, startDate, endDate, flatRewardAmount, packageCommissionMin, packageCommissionMax, defaultCommissionType]
+      properties:
+        name:
+          type: string
+        nameZh:
+          type: string
+        description:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        flatRewardAmount:
+          type: number
+        packageCommissionMin:
+          type: number
+        packageCommissionMax:
+          type: number
+        defaultCommissionType:
+          type: string
+          enum: [flat_rm30, package_percent]
+        tierBonuses:
+          type: array
+          items:
+            $ref: "#/components/schemas/TierBonus"
+
+    CampaignUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        nameZh:
+          type: string
+        description:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        isActive:
+          type: boolean
+        flatRewardAmount:
+          type: number
+        packageCommissionMin:
+          type: number
+        packageCommissionMax:
+          type: number
+        defaultCommissionType:
+          type: string
+          enum: [flat_rm30, package_percent]
+        tierBonuses:
+          type: array
+          items:
+            $ref: "#/components/schemas/TierBonus"
+
+    TierBonus:
+      type: object
+      required: [minConversions, bonusAmount, label]
+      properties:
+        minConversions:
+          type: integer
+        bonusAmount:
+          type: number
+        label:
+          type: string
+        labelZh:
+          type: string
+
+    PartnerProfile:
+      type: object
+      required: [id, userId, displayName, referralCode, kirimembershipId, isActive, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        displayName:
+          type: string
+        referralCode:
+          type: string
+        kirimembershipId:
+          type: string
+        phone:
+          type: ["string", "null"]
+        isActive:
+          type: boolean
+        totalLeads:
+          type: integer
+        totalConversions:
+          type: integer
+        totalCommissionEarned:
+          type: number
+        createdAt:
+          type: string
+
+    PartnerInput:
+      type: object
+      required: [displayName, kirimembershipId, username, password]
+      properties:
+        displayName:
+          type: string
+        kirimembershipId:
+          type: string
+        phone:
+          type: string
+        username:
+          type: string
+        password:
+          type: string
+
+    AuditLogEntry:
+      type: object
+      required: [id, entityType, entityId, action, performedBy, createdAt]
+      properties:
+        id:
+          type: integer
+        entityType:
+          type: string
+        entityId:
+          type: integer
+        action:
+          type: string
+        previousValue:
+          type: ["string", "null"]
+        newValue:
+          type: ["string", "null"]
+        auditNote:
+          type: ["string", "null"]
+        performedBy:
+          type: string
+        createdAt:
+          type: string
+
+    AuditLogList:
+      type: object
+      required: [entries, total, page, limit]
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuditLogEntry"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    WhatsappMessage:
+      type: object
+      required: [message, lang]
+      properties:
+        message:
+          type: string
+        lang:
+          type: string
+
+    WhatsappMessagePair:
+      type: object
+      required: [messageEn, messageZh]
+      properties:
+        messageEn:
+          type: string
+        messageZh:
+          type: string
+
+    ExportResult:
+      type: object
+      required: [csvData, filename, rowCount]
+      properties:
+        csvData:
+          type: string
+        filename:
+          type: string
+        rowCount:
+          type: integer
