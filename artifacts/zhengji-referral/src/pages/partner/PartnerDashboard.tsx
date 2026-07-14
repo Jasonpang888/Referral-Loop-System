@@ -1,8 +1,9 @@
 import Layout from "@/components/Layout";
-import { useGetPartnerStats, useGetPartnerLeads } from "@workspace/api-client-react";
+import { useGetPartnerStats, useGetPartnerLeads, useGetPartnerStatement } from "@workspace/api-client-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { StageChip } from "@/components/StageChip";
+import { ReferralQrCode } from "@/components/ReferralQrCode";
 import { useState } from "react";
 
 function StatCard({ title: titleEn, titleZh, value, className = "" }: { title: string; titleZh: string; value: string | number; className?: string }) {
@@ -21,6 +22,12 @@ export default function PartnerDashboard() {
   const currentMonth = new Date().toISOString().slice(0, 7);
   const { data: stats } = useGetPartnerStats({ month: currentMonth });
   const { data: leadsData } = useGetPartnerLeads({ page: 1 });
+  // referralCode must come from the partner's own record (via /partner/statement),
+  // not from an existing lead - a brand-new partner has zero leads on day one and
+  // still needs to see/share their referral link.
+  const { data: statement } = useGetPartnerStatement({ month: currentMonth });
+  const referralCode = statement?.referralCode ?? "";
+  const referralLink = `${window.location.origin}/ref/${referralCode}`;
 
   return (
     <Layout>
@@ -30,18 +37,23 @@ export default function PartnerDashboard() {
           <p className="text-sm text-muted-foreground mt-0.5">Welcome, {user?.displayName} · {currentMonth}</p>
         </div>
 
-        <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg text-xs">
-          <strong>Referral Link | 推荐链接:</strong>{" "}
-          <span className="font-mono text-primary">
-            {window.location.origin}/ref/{/* partner code shown via leads data */}
-            {leadsData?.leads[0]?.referralCode ?? "YOUR_CODE"}
-          </span>
-          <button
-            onClick={() => navigator.clipboard.writeText(`${window.location.origin}/ref/${leadsData?.leads[0]?.referralCode ?? ""}`)}
-            className="ml-2 underline text-primary hover:text-primary/80"
-          >
-            Copy | 复制
-          </button>
+        <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg text-xs flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="flex-1">
+            <strong>Referral Link | 推荐链接:</strong>{" "}
+            <span className="font-mono text-primary break-all">
+              {referralCode ? referralLink : "Loading... | 加载中..."}
+            </span>
+            <div>
+              <button
+                onClick={() => navigator.clipboard.writeText(referralLink)}
+                disabled={!referralCode}
+                className="mt-1 underline text-primary hover:text-primary/80 disabled:opacity-50 disabled:no-underline"
+              >
+                Copy | 复制
+              </button>
+            </div>
+          </div>
+          <ReferralQrCode link={referralCode ? referralLink : ""} />
         </div>
 
         {/* Stats */}
