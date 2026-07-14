@@ -2,7 +2,11 @@ import { db, usersTable, partnersTable, campaignsTable, leadsTable, commissionsT
 import crypto from "crypto";
 
 function hashPassword(password: string): string {
-  return crypto.createHash("sha256").update(password + "zhengji_salt_2024").digest("hex");
+  // Must match artifacts/api-server/src/lib/auth.ts hashPassword exactly
+  // (scrypt with random per-password salt, stored as "salt:derivedKey").
+  const salt = crypto.randomBytes(16).toString("hex");
+  const derivedKey = crypto.scryptSync(password, salt, 64);
+  return `${salt}:${derivedKey.toString("hex")}`;
 }
 
 async function seed() {
