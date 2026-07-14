@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
+  "buildCommand": "cd ../.. && pnpm --filter @workspace/zhengji-referral run build",
+  "outputDirectory": "dist/public",
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "https://referral-loop-system-api-server.vercel.app/api/$1" }
+  ]
+}
