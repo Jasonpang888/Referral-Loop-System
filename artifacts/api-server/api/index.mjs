@@ -28208,7 +28208,7 @@ var require_pino = __commonJS({
     function pinoBundlerAbsolutePath(p) {
       try {
         const path = __require("path");
-        const outputDir = "/tmp/work/repo/artifacts/api-server/api";
+        const outputDir = "/tmp/work2/repo/artifacts/api-server/api";
         return path.resolve(outputDir, p.replace(/^\.\//, ""));
       } catch (e) {
         const f = new Function("p", "return new URL(p, import.meta.url).pathname");
@@ -57385,10 +57385,25 @@ function requireAuth(req, res, next) {
   req.user = payload;
   next();
 }
+var ROLE_ALIASES = {
+  admin: ["admin", "super_admin"],
+  zhengji_staff: ["zhengji_staff", "brand_admin", "outlet_staff", "finance"],
+  kiri_partner: ["kiri_partner", "partner_admin", "partner_staff"]
+};
+function expandRoles(roles) {
+  const expanded = /* @__PURE__ */ new Set();
+  for (const role of roles) {
+    for (const alias of ROLE_ALIASES[role] ?? [role]) {
+      expanded.add(alias);
+    }
+  }
+  return [...expanded];
+}
 function requireRole(...roles) {
+  const allowed = expandRoles(roles);
   return (req, res, next) => {
     const user = req.user;
-    if (!user || !roles.includes(user.role)) {
+    if (!user || !allowed.includes(user.role)) {
       res.status(403).json({ error: "Forbidden" });
       return;
     }
