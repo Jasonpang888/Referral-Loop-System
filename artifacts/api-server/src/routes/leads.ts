@@ -337,18 +337,18 @@ Offer: ${lead.selectedOffer}
 
 We look forward to seeing you soon! Please bring this message when you visit.
 
-Zhengji Wellness | 正记健康`;
+Zhengji Wellness | 正脊堂`;
 
   const messageZh = `您好 ${lead.name}！
 
-感谢您通过 ${partner?.displayName ?? "我们合作伙伴"} 的推荐关注正记健康。
+感谢您通过 ${partner?.displayName ?? "我们合作伙伴"} 的推荐关注正脊堂。
 
 您的推荐码：*${lead.referralCode}*
 优惠内容：免费健康咨询 + 会员专属九折优惠
 
 期待您的光临！就诊时请出示此消息。
 
-正记健康 | Zhengji Wellness`;
+正脊堂 | Zhengji Wellness`;
 
   res.json({ messageEn, messageZh });
 });

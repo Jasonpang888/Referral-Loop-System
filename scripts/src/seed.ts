@@ -53,7 +53,7 @@ async function seed() {
   // Create campaign
   const [campaign] = await db.insert(campaignsTable).values({
     name: "Kiri Bar × Zhengji Q3 2026",
-    nameZh: "Kiri Bar × 正记健康 2026年第三季度",
+    nameZh: "Kiri Bar × 正脊堂 2026年第三季度",
     description: "Summer wellness referral campaign | 夏季健康推荐活动",
     startDate: "2026-07-01",
     endDate: "2026-09-30",
@@ -67,7 +67,7 @@ async function seed() {
 
   const [campaign2] = await db.insert(campaignsTable).values({
     name: "Kiri Bar × Zhengji Q1 2026 (Ended)",
-    nameZh: "Kiri Bar × 正记健康 2026年第一季度（已结束）",
+    nameZh: "Kiri Bar × 正脊堂 2026年第一季度（已结束）",
     description: "New Year referral campaign | 新年健康推荐活动",
     startDate: "2026-01-01",
     endDate: "2026-03-31",

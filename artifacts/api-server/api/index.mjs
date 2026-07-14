@@ -28208,7 +28208,7 @@ var require_pino = __commonJS({
     function pinoBundlerAbsolutePath(p) {
       try {
         const path = __require("path");
-        const outputDir = "/tmp/work2/repo/artifacts/api-server/api";
+        const outputDir = "/tmp/work3/artifacts/api-server/api";
         return path.resolve(outputDir, p.replace(/^\.\//, ""));
       } catch (e) {
         const f = new Function("p", "return new URL(p, import.meta.url).pathname");
@@ -57786,17 +57786,17 @@ Offer: ${lead.selectedOffer}
 
 We look forward to seeing you soon! Please bring this message when you visit.
 
-Zhengji Wellness | \u6B63\u8BB0\u5065\u5EB7`;
+Zhengji Wellness | \u6B63\u810A\u5802`;
   const messageZh = `\u60A8\u597D ${lead.name}\uFF01
 
-\u611F\u8C22\u60A8\u901A\u8FC7 ${partner?.displayName ?? "\u6211\u4EEC\u5408\u4F5C\u4F19\u4F34"} \u7684\u63A8\u8350\u5173\u6CE8\u6B63\u8BB0\u5065\u5EB7\u3002
+\u611F\u8C22\u60A8\u901A\u8FC7 ${partner?.displayName ?? "\u6211\u4EEC\u5408\u4F5C\u4F19\u4F34"} \u7684\u63A8\u8350\u5173\u6CE8\u6B63\u810A\u5802\u3002
 
 \u60A8\u7684\u63A8\u8350\u7801\uFF1A*${lead.referralCode}*
 \u4F18\u60E0\u5185\u5BB9\uFF1A\u514D\u8D39\u5065\u5EB7\u54A8\u8BE2 + \u4F1A\u5458\u4E13\u5C5E\u4E5D\u6298\u4F18\u60E0
 
 \u671F\u5F85\u60A8\u7684\u5149\u4E34\uFF01\u5C31\u8BCA\u65F6\u8BF7\u51FA\u793A\u6B64\u6D88\u606F\u3002
 
-\u6B63\u8BB0\u5065\u5EB7 | Zhengji Wellness`;
+\u6B63\u810A\u5802 | Zhengji Wellness`;
   res.json({ messageEn, messageZh });
 });
 var leads_default = router4;
