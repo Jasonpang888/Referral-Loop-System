@@ -1,4 +1,5 @@
 import { useGetReferralPage, useCreateLead, LeadInputLang } from "@workspace/api-client-react";
+import { ApiError } from "@workspace/api-client-react";
 import { useParams } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -58,10 +59,13 @@ export default function ReferralLanding() {
         });
         form.reset();
       },
-      onError: () => {
+      onError: (error: unknown) => {
+        const isDuplicate = error instanceof ApiError && error.status === 409;
         toast({
           title: "Error | 错误",
-          description: "Failed to submit request. Please try again. | 提交请求失败，请重试。",
+          description: isDuplicate
+            ? "This mobile number or membership ID has already been used to claim this offer. Please contact the outlet staff directly if you need help. | 此手机号或会员号已提交过此优惠，如需协助请直接联系门店员工。"
+            : "Failed to submit request. Please try again. | 提交请求失败，请重试。",
           variant: "destructive"
         });
       }
