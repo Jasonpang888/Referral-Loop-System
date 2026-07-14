@@ -3,6 +3,7 @@
   "framework": null,
   "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
   "buildCommand": "cd ../.. && pnpm --filter @workspace/api-server run build:vercel",
+  "outputDirectory": "public",
   "functions": {
     "api/index.mjs": { "maxDuration": 30 }
   },
