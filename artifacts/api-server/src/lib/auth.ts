@@ -74,10 +74,34 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
   next();
 }
 
+// The live Supabase database (provisioned ahead of this codebase, see audit report
+// section 5) already stores users under the newer 6-role scheme
+// (super_admin, brand_admin, outlet_staff, finance, partner_admin, partner_staff)
+// while the route handlers below were written against the older 3-role scheme
+// (admin, zhengji_staff, kiri_partner). Until the full V2 multi-brand/6-role
+// rebuild lands, this alias table lets both schemes authenticate against the
+// same route guards without touching every call site.
+const ROLE_ALIASES: Record<string, string[]> = {
+  admin: ["admin", "super_admin"],
+  zhengji_staff: ["zhengji_staff", "brand_admin", "outlet_staff", "finance"],
+  kiri_partner: ["kiri_partner", "partner_admin", "partner_staff"],
+};
+
+function expandRoles(roles: string[]): string[] {
+  const expanded = new Set<string>();
+  for (const role of roles) {
+    for (const alias of ROLE_ALIASES[role] ?? [role]) {
+      expanded.add(alias);
+    }
+  }
+  return [...expanded];
+}
+
 export function requireRole(...roles: string[]) {
+  const allowed = expandRoles(roles);
   return (req: Request, res: Response, next: NextFunction): void => {
     const user = (req as any).user;
-    if (!user || !roles.includes(user.role)) {
+    if (!user || !allowed.includes(user.role)) {
       res.status(403).json({ error: "Forbidden" });
       return;
     }
