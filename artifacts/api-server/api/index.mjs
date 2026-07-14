@@ -57399,6 +57399,9 @@ function expandRoles(roles) {
   }
   return [...expanded];
 }
+function isPartnerRole(role) {
+  return expandRoles(["kiri_partner"]).includes(role);
+}
 function requireRole(...roles) {
   const allowed = expandRoles(roles);
   return (req, res, next) => {
@@ -57437,7 +57440,7 @@ router2.post("/auth/login", async (req, res) => {
   }
   const token = generateToken(user.id, user.role);
   let partnerId = null;
-  if (user.role === "kiri_partner") {
+  if (isPartnerRole(user.role)) {
     const [partner] = await db.select().from(partnersTable).where(eq(partnersTable.userId, user.id));
     partnerId = partner?.id ?? null;
   }
@@ -57463,7 +57466,7 @@ router2.get("/auth/me", requireAuth, async (req, res) => {
     return;
   }
   let partnerId = null;
-  if (user.role === "kiri_partner") {
+  if (isPartnerRole(user.role)) {
     const [partner] = await db.select().from(partnersTable).where(eq(partnersTable.userId, user.id));
     partnerId = partner?.id ?? null;
   }

@@ -97,6 +97,10 @@ function expandRoles(roles: string[]): string[] {
   return [...expanded];
 }
 
+export function isPartnerRole(role: string): boolean {
+  return expandRoles(["kiri_partner"]).includes(role);
+}
+
 export function requireRole(...roles: string[]) {
   const allowed = expandRoles(roles);
   return (req: Request, res: Response, next: NextFunction): void => {
