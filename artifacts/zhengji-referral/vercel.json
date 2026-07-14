@@ -4,6 +4,5 @@
   "buildCommand": "cd ../.. && pnpm --filter @workspace/zhengji-referral run build",
   "outputDirectory": "dist/public",
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "https://referral-loop-system-api-server.vercel.app/api/$1" }
-  ]
-}
+    { "source": "/api/(.*)", "destination": "https://referral-loop-system-api-server.vercel.app/api/$1" },
+    {
