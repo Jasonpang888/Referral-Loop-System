@@ -3,7 +3,7 @@
   "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
   "buildCommand": "cd ../.. && pnpm --filter @workspace/api-server run build:vercel",
   "functions": {
-    "api/index.mjs": {}
+    "api/index.mjs": { "maxDuration": 30 }
   },
   "rewrites": [
     { "source": "/(.*)", "destination": "/api/index" }
