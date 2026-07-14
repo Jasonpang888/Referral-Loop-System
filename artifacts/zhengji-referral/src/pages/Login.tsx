@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect } from "react";
+import { getRoleHomePath } from "@/lib/roles";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -26,9 +27,8 @@ export default function Login() {
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      if (user.role === "admin") setLocation("/admin");
-      else if (user.role === "zhengji_staff") setLocation("/staff");
-      else if (user.role === "kiri_partner") setLocation("/partner");
+      const home = getRoleHomePath(user.role);
+      if (home) setLocation(home);
     }
   }, [isAuthenticated, user, setLocation]);
 

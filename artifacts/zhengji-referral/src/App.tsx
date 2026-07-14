@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import NotFound from "@/pages/not-found";
 import { useEffect } from "react";
 import { Spinner } from "@/components/ui/spinner";
+import { roleMatches, getRoleHomePath } from "@/lib/roles";
 
 import Login from "@/pages/Login";
 import ReferralLanding from "@/pages/ref/ReferralLanding";
@@ -43,8 +44,8 @@ function ProtectedRoute({ component: Component, roles, ...rest }: { component: R
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       setLocation("/login");
-    } else if (!isLoading && isAuthenticated && user && roles.length > 0 && !roles.includes(user.role)) {
-      const fallback = user.role === "admin" ? "/admin" : user.role === "zhengji_staff" ? "/staff" : "/partner";
+    } else if (!isLoading && isAuthenticated && user && roles.length > 0 && !roleMatches(user.role, roles)) {
+      const fallback = getRoleHomePath(user.role) ?? "/login";
       setLocation(fallback);
     }
   }, [isLoading, isAuthenticated, user, setLocation]);
@@ -66,9 +67,8 @@ function RoleRouter() {
 
   useEffect(() => {
     if (!isLoading && isAuthenticated && location === "/") {
-      if (user?.role === "admin") setLocation("/admin");
-      else if (user?.role === "zhengji_staff") setLocation("/staff");
-      else if (user?.role === "kiri_partner") setLocation("/partner");
+      const home = getRoleHomePath(user?.role);
+      if (home) setLocation(home);
     } else if (!isLoading && !isAuthenticated && location === "/") {
       setLocation("/login");
     }
