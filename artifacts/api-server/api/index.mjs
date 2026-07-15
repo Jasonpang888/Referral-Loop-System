@@ -58731,12 +58731,15 @@ router10.post("/payout-batches", requireAuth, requireRole("admin", "finance"), a
     res.status(409).json({ error: `Commissions must be in 'approved' status to be batched. Offending IDs: ${notApproved.map((c) => c.id).join(", ")}` });
     return;
   }
-  const [{ alreadyBatchedCount }] = await db.execute(sql`
+  const commissionIdParams = sql.join(commissionIds.map((cid) => sql`${cid}`), sql`, `);
+  const alreadyBatchedResult = await db.execute(sql`
     SELECT count(*)::int AS "alreadyBatchedCount" FROM (
       SELECT (jsonb_array_elements_text(commission_ids::jsonb))::int AS cid
       FROM payout_batches WHERE status != 'void'
-    ) t WHERE cid = ANY(${commissionIds})
-  `).then((r) => r.rows);
+    ) t WHERE cid = ANY(ARRAY[${commissionIdParams}]::int[])
+  `);
+  const alreadyBatchedRows = alreadyBatchedResult.rows ?? alreadyBatchedResult;
+  const alreadyBatchedCount = Number(alreadyBatchedRows?.[0]?.alreadyBatchedCount ?? 0);
   if (alreadyBatchedCount > 0) {
     res.status(409).json({ error: "One or more commissions are already included in another batch" });
     return;
