@@ -24,7 +24,6 @@ export const commissionsTable = pgTable("commissions", {
   payoutReference: text("payout_reference"),
   proofUrl: text("proof_url"),
   auditNote: text("audit_note"),
-  batchId: integer("batch_id"),
   approvedBy: text("approved_by"),
   approvedAt: timestamp("approved_at", { withTimezone: true }),
   paidAt: timestamp("paid_at", { withTimezone: true }),

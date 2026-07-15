@@ -1,16 +1,13 @@
 import Layout from "@/components/Layout";
 import {
-  useGetPayoutBatch, useMarkPayoutBatchPaid, useCancelPayoutBatch, useExportPayoutBatch,
+  useGetPayoutBatch, useUpdatePayoutBatch, useExportPayoutBatch,
   getGetPayoutBatchQueryKey, getGetPayoutBatchesQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { BatchStatusChip, CommissionStatusChip, CommissionTypeChip } from "@/components/StageChip";
 import { useParams, useLocation } from "wouter";
-import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 function downloadCSV(csvData: string, filename: string) {
@@ -28,39 +25,19 @@ export default function BatchDetail() {
   const batchId = parseInt(id, 10);
   const [, setLocation] = useLocation();
   const { data: batch, isLoading } = useGetPayoutBatch(batchId);
-  const markPaid = useMarkPayoutBatchPaid();
-  const cancelBatch = useCancelPayoutBatch();
+  const updateBatch = useUpdatePayoutBatch();
   const exportBatch = useExportPayoutBatch(batchId);
   const qc = useQueryClient();
   const { toast } = useToast();
 
-  const [payoutReference, setPayoutReference] = useState("");
-  const [auditNote, setAuditNote] = useState("");
-
-  const handleMarkPaid = () => {
-    if (!payoutReference) {
-      toast({ title: "Enter a payout reference | 请输入付款参考号", variant: "destructive" });
-      return;
-    }
-    markPaid.mutate({ id: batchId, data: { payoutReference, auditNote: auditNote || undefined } }, {
+  const transition = (status: string, label: string) => {
+    updateBatch.mutate({ id: batchId, data: { status: status as any } }, {
       onSuccess: () => {
         qc.invalidateQueries({ queryKey: getGetPayoutBatchQueryKey(batchId) });
         qc.invalidateQueries({ queryKey: getGetPayoutBatchesQueryKey() });
-        toast({ title: "Batch marked as paid | 批次已标记为已付款" });
+        toast({ title: label });
       },
-      onError: (err: any) => toast({ title: err?.response?.data?.error ?? "Error marking batch paid", variant: "destructive" }),
-    });
-  };
-
-  const handleCancel = () => {
-    cancelBatch.mutate({ id: batchId, data: { auditNote: "Cancelled via finance dashboard" } as any }, {
-      onSuccess: () => {
-        qc.invalidateQueries({ queryKey: getGetPayoutBatchQueryKey(batchId) });
-        qc.invalidateQueries({ queryKey: getGetPayoutBatchesQueryKey() });
-        toast({ title: "Batch cancelled — commissions released | 批次已取消，佣金已释放" });
-        setLocation("/finance");
-      },
-      onError: (err: any) => toast({ title: err?.response?.data?.error ?? "Error cancelling batch", variant: "destructive" }),
+      onError: (err: any) => toast({ title: err?.response?.data?.error ?? "Error updating batch", variant: "destructive" }),
     });
   };
 
@@ -80,8 +57,8 @@ export default function BatchDetail() {
         <div className="flex items-center gap-3">
           <Button size="sm" variant="outline" onClick={() => setLocation("/finance")}>← Back | 返回</Button>
           <div>
-            <h1 className="text-xl font-serif font-bold text-primary font-mono">{batch.reference}</h1>
-            <p className="text-sm text-muted-foreground">{batch.periodStart} → {batch.periodEnd}</p>
+            <h1 className="text-xl font-serif font-bold text-primary">Batch #{batch.id} · {batch.partnerName}</h1>
+            <p className="text-sm text-muted-foreground">Bank Ref: {batch.bankReference}</p>
           </div>
           <BatchStatusChip status={batch.status} />
         </div>
@@ -89,43 +66,43 @@ export default function BatchDetail() {
         <Card>
           <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-5">
             <div><span className="text-xs text-muted-foreground">Total | 总额</span><div className="text-xl font-bold">RM{batch.totalAmount.toFixed(2)}</div></div>
-            <div><span className="text-xs text-muted-foreground">Commissions | 佣金数</span><div className="text-xl font-bold">{batch.commissionCount}</div></div>
-            <div><span className="text-xs text-muted-foreground">Created By | 创建人</span><div className="text-sm mt-1">{batch.createdBy ?? "—"}</div></div>
-            <div><span className="text-xs text-muted-foreground">Payout Ref | 付款参考号</span><div className="text-sm mt-1">{batch.payoutReference ?? "—"}</div></div>
+            <div><span className="text-xs text-muted-foreground">Commissions | 佣金数</span><div className="text-xl font-bold">{batch.commissionIds.length}</div></div>
+            <div><span className="text-xs text-muted-foreground">Created By | 创建人</span><div className="text-sm mt-1">{batch.createdBy}</div></div>
+            <div><span className="text-xs text-muted-foreground">Paid At | 付款日期</span><div className="text-sm mt-1">{batch.paidAt ? new Date(batch.paidAt).toLocaleDateString("zh-CN") : "—"}</div></div>
+            {batch.proofUrl && (
+              <div className="col-span-2 md:col-span-4">
+                <a href={batch.proofUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline">View transfer proof | 查看转账凭证</a>
+              </div>
+            )}
+            {batch.auditNote && (
+              <div className="col-span-2 md:col-span-4 text-xs text-muted-foreground italic">Note: {batch.auditNote}</div>
+            )}
           </CardContent>
         </Card>
 
-        {batch.status === "draft" && (
-          <Card className="border-primary/20">
-            <CardHeader><CardTitle className="text-sm">Mark Batch as Paid | 标记批次为已付款</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
-              <p className="text-xs text-muted-foreground">This pays every commission in this batch at once with the same payout reference | 这会用同一个付款参考号一次性把批次内所有佣金标记为已付款</p>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label className="text-xs">Payout Reference | 付款参考号 *</Label>
-                  <Input value={payoutReference} onChange={e => setPayoutReference(e.target.value)} placeholder="Bank transfer batch ref" />
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">Audit Note | 审计备注</Label>
-                  <Input value={auditNote} onChange={e => setAuditNote(e.target.value)} placeholder="Optional" />
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button onClick={handleMarkPaid} disabled={markPaid.isPending}>
-                  {markPaid.isPending ? "Processing..." : "Mark Paid | 标记已付款"}
-                </Button>
-                <Button variant="outline" onClick={handleExport} disabled={!exportBatch.data}>Export CSV | 导出CSV</Button>
-                <Button variant="destructive" onClick={handleCancel} disabled={cancelBatch.isPending}>Cancel Batch | 取消批次</Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {batch.status !== "draft" && (
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleExport} disabled={!exportBatch.data}>Export CSV | 导出CSV</Button>
-          </div>
-        )}
+        <div className="flex gap-2 flex-wrap">
+          {batch.status === "draft" && (
+            <>
+              <Button onClick={() => transition("paid", "Batch marked as paid | 批次已标记为已付款")} disabled={updateBatch.isPending}>
+                Mark Transferred / Paid | 标记已转账
+              </Button>
+              <Button variant="destructive" onClick={() => transition("void", "Batch voided | 批次已作废")} disabled={updateBatch.isPending}>
+                Void Draft | 作废草稿
+              </Button>
+            </>
+          )}
+          {batch.status === "paid" && (
+            <Button variant="outline" onClick={() => transition("disputed", "Batch flagged as disputed | 批次已标记为有争议")} disabled={updateBatch.isPending}>
+              Flag as Disputed | 标记为有争议
+            </Button>
+          )}
+          {batch.status === "disputed" && (
+            <Button onClick={() => transition("paid", "Dispute resolved — batch is paid | 争议已解决，批次已付款")} disabled={updateBatch.isPending}>
+              Resolve — Mark Paid | 解决争议——标记已付款
+            </Button>
+          )}
+          <Button variant="outline" onClick={handleExport} disabled={!exportBatch.data}>Export CSV | 导出CSV</Button>
+        </div>
 
         <Card>
           <CardHeader><CardTitle className="text-sm">Commissions in this batch | 批次内的佣金</CardTitle></CardHeader>
@@ -135,11 +112,10 @@ export default function BatchDetail() {
                 <div key={c.id} className="flex items-center justify-between gap-4 px-5 py-3 text-sm">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">{c.partnerName}</span>
+                      <span className="font-medium">{c.leadName}</span>
                       <CommissionStatusChip status={c.status} />
                       <CommissionTypeChip type={c.commissionType} />
                     </div>
-                    <div className="text-xs text-muted-foreground mt-0.5">Lead: {c.leadName}</div>
                   </div>
                   <div className="font-medium flex-shrink-0">RM{Number(c.amount).toFixed(2)}</div>
                 </div>

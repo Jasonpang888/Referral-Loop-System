@@ -8,6 +8,10 @@
 
 export type GetPayoutBatchesParams = {
 status?: string;
+/**
+ * @nullable
+ */
+partnerId?: number | null;
 page?: number;
 limit?: number;
 };

@@ -12,5 +12,6 @@ export type PayoutBatchStatus = typeof PayoutBatchStatus[keyof typeof PayoutBatc
 export const PayoutBatchStatus = {
   draft: 'draft',
   paid: 'paid',
-  cancelled: 'cancelled',
+  disputed: 'disputed',
+  void: 'void',
 } as const;

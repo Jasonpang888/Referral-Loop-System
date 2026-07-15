@@ -38288,6 +38288,7 @@ var DisputeCommissionResponse = objectType({
 });
 var GetPayoutBatchesQueryParams = objectType({
   "status": coerce.string().optional(),
+  "partnerId": coerce.number().nullish(),
   "page": coerce.number().optional(),
   "limit": coerce.number().optional()
 });
@@ -38295,16 +38296,16 @@ var GetPayoutBatchesResponse = objectType({
   "batches": arrayType(objectType({
     "id": numberType(),
     "brandId": numberType().nullish(),
-    "reference": stringType(),
-    "periodStart": stringType(),
-    "periodEnd": stringType(),
-    "status": enumType(["draft", "paid", "cancelled"]),
+    "partnerId": numberType().nullish(),
+    "partnerName": stringType().optional(),
+    "commissionIds": arrayType(numberType()),
     "totalAmount": numberType(),
-    "commissionCount": numberType(),
-    "payoutReference": stringType().nullish(),
-    "paidAt": stringType().nullish(),
-    "createdBy": stringType().nullish(),
+    "bankReference": stringType(),
+    "proofUrl": stringType().nullish(),
+    "status": enumType(["draft", "paid", "disputed", "void"]),
     "auditNote": stringType().nullish(),
+    "createdBy": stringType(),
+    "paidAt": stringType().nullish(),
     "createdAt": stringType(),
     "updatedAt": stringType().optional()
   })),
@@ -38313,24 +38314,26 @@ var GetPayoutBatchesResponse = objectType({
   "limit": numberType()
 });
 var CreatePayoutBatchBody = objectType({
-  "periodStart": stringType(),
-  "periodEnd": stringType(),
+  "partnerId": numberType(),
   "commissionIds": arrayType(numberType()),
-  "auditNote": stringType().optional()
+  "bankReference": stringType(),
+  "proofUrl": stringType().optional(),
+  "auditNote": stringType().optional(),
+  "status": enumType(["draft", "paid"]).optional()
 });
 var CreatePayoutBatchResponse = objectType({
   "id": numberType(),
   "brandId": numberType().nullish(),
-  "reference": stringType(),
-  "periodStart": stringType(),
-  "periodEnd": stringType(),
-  "status": enumType(["draft", "paid", "cancelled"]),
+  "partnerId": numberType().nullish(),
+  "partnerName": stringType().optional(),
+  "commissionIds": arrayType(numberType()),
   "totalAmount": numberType(),
-  "commissionCount": numberType(),
-  "payoutReference": stringType().nullish(),
-  "paidAt": stringType().nullish(),
-  "createdBy": stringType().nullish(),
+  "bankReference": stringType(),
+  "proofUrl": stringType().nullish(),
+  "status": enumType(["draft", "paid", "disputed", "void"]),
   "auditNote": stringType().nullish(),
+  "createdBy": stringType(),
+  "paidAt": stringType().nullish(),
   "createdAt": stringType(),
   "updatedAt": stringType().optional()
 });
@@ -38340,16 +38343,16 @@ var GetPayoutBatchParams = objectType({
 var GetPayoutBatchResponse = objectType({
   "id": numberType(),
   "brandId": numberType().nullish(),
-  "reference": stringType(),
-  "periodStart": stringType(),
-  "periodEnd": stringType(),
-  "status": enumType(["draft", "paid", "cancelled"]),
+  "partnerId": numberType().nullish(),
+  "partnerName": stringType().optional(),
+  "commissionIds": arrayType(numberType()),
   "totalAmount": numberType(),
-  "commissionCount": numberType(),
-  "payoutReference": stringType().nullish(),
-  "paidAt": stringType().nullish(),
-  "createdBy": stringType().nullish(),
+  "bankReference": stringType(),
+  "proofUrl": stringType().nullish(),
+  "status": enumType(["draft", "paid", "disputed", "void"]),
   "auditNote": stringType().nullish(),
+  "createdBy": stringType(),
+  "paidAt": stringType().nullish(),
   "createdAt": stringType(),
   "updatedAt": stringType().optional(),
   "commissions": arrayType(objectType({
@@ -38375,48 +38378,28 @@ var GetPayoutBatchResponse = objectType({
     "updatedAt": stringType().optional()
   }))
 });
-var MarkPayoutBatchPaidParams = objectType({
+var UpdatePayoutBatchParams = objectType({
   "id": coerce.number()
 });
-var MarkPayoutBatchPaidBody = objectType({
-  "payoutReference": stringType(),
+var UpdatePayoutBatchBody = objectType({
+  "status": enumType(["draft", "paid", "disputed", "void"]).optional(),
+  "bankReference": stringType().optional(),
+  "proofUrl": stringType().optional(),
   "auditNote": stringType().optional()
 });
-var MarkPayoutBatchPaidResponse = objectType({
+var UpdatePayoutBatchResponse = objectType({
   "id": numberType(),
   "brandId": numberType().nullish(),
-  "reference": stringType(),
-  "periodStart": stringType(),
-  "periodEnd": stringType(),
-  "status": enumType(["draft", "paid", "cancelled"]),
+  "partnerId": numberType().nullish(),
+  "partnerName": stringType().optional(),
+  "commissionIds": arrayType(numberType()),
   "totalAmount": numberType(),
-  "commissionCount": numberType(),
-  "payoutReference": stringType().nullish(),
-  "paidAt": stringType().nullish(),
-  "createdBy": stringType().nullish(),
+  "bankReference": stringType(),
+  "proofUrl": stringType().nullish(),
+  "status": enumType(["draft", "paid", "disputed", "void"]),
   "auditNote": stringType().nullish(),
-  "createdAt": stringType(),
-  "updatedAt": stringType().optional()
-});
-var CancelPayoutBatchParams = objectType({
-  "id": coerce.number()
-});
-var CancelPayoutBatchBody = objectType({
-  "auditNote": stringType().optional()
-});
-var CancelPayoutBatchResponse = objectType({
-  "id": numberType(),
-  "brandId": numberType().nullish(),
-  "reference": stringType(),
-  "periodStart": stringType(),
-  "periodEnd": stringType(),
-  "status": enumType(["draft", "paid", "cancelled"]),
-  "totalAmount": numberType(),
-  "commissionCount": numberType(),
-  "payoutReference": stringType().nullish(),
+  "createdBy": stringType(),
   "paidAt": stringType().nullish(),
-  "createdBy": stringType().nullish(),
-  "auditNote": stringType().nullish(),
   "createdAt": stringType(),
   "updatedAt": stringType().optional()
 });
@@ -57447,7 +57430,6 @@ var commissionsTable = pgTable("commissions", {
   payoutReference: text("payout_reference"),
   proofUrl: text("proof_url"),
   auditNote: text("audit_note"),
-  batchId: integer("batch_id"),
   approvedBy: text("approved_by"),
   approvedAt: timestamp("approved_at", { withTimezone: true }),
   paidAt: timestamp("paid_at", { withTimezone: true }),
@@ -57460,21 +57442,21 @@ var insertCommissionSchema = createInsertSchema(commissionsTable).omit({ id: tru
 var payoutBatchStatusEnum = pgEnum("payout_batch_status", [
   "draft",
   "paid",
-  "cancelled"
+  "disputed",
+  "void"
 ]);
 var payoutBatchesTable = pgTable("payout_batches", {
   id: serial("id").primaryKey(),
   brandId: integer("brand_id"),
-  reference: text("reference").notNull(),
-  periodStart: date("period_start", { mode: "string" }).notNull(),
-  periodEnd: date("period_end", { mode: "string" }).notNull(),
-  status: payoutBatchStatusEnum("status").notNull().default("draft"),
-  totalAmount: numeric("total_amount", { precision: 12, scale: 2 }).notNull().default("0"),
-  commissionCount: integer("commission_count").notNull().default(0),
-  payoutReference: text("payout_reference"),
-  paidAt: timestamp("paid_at", { withTimezone: true }),
-  createdBy: text("created_by"),
+  partnerId: integer("partner_id"),
+  commissionIds: json("commission_ids").notNull().default([]),
+  totalAmount: numeric("total_amount", { precision: 12, scale: 2 }).notNull(),
+  bankReference: text("bank_reference").notNull(),
+  proofUrl: text("proof_url"),
+  status: payoutBatchStatusEnum("status").notNull().default("paid"),
   auditNote: text("audit_note"),
+  createdBy: text("created_by").notNull(),
+  paidAt: timestamp("paid_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => /* @__PURE__ */ new Date())
 });
@@ -58001,13 +57983,20 @@ async function enrichCommission(comm) {
   };
 }
 router5.get("/commissions", requireAuth, requireRole("admin", "zhengji_staff", "finance"), async (req, res) => {
-  const { status, unbatched, page = "1", limit = "20" } = req.query;
+  const { status, partnerId, unbatched, page = "1", limit = "20" } = req.query;
   const pageNum = Math.max(1, parseInt(page, 10));
   const limitNum = Math.min(100, parseInt(limit, 10));
   const offset = (pageNum - 1) * limitNum;
   const conditions = [];
   if (status) conditions.push(eq(commissionsTable.status, status));
-  if (unbatched === "true") conditions.push(isNull(commissionsTable.batchId));
+  if (partnerId) conditions.push(eq(commissionsTable.partnerId, parseInt(partnerId, 10)));
+  if (unbatched === "true") {
+    conditions.push(sql`${commissionsTable.id} NOT IN (
+      SELECT (jsonb_array_elements_text(commission_ids::jsonb))::int
+      FROM payout_batches
+      WHERE status != 'void'
+    )`);
+  }
   const query = conditions.length > 0 ? and(...conditions) : void 0;
   const [{ total }] = await db.select({ total: count() }).from(commissionsTable).where(query);
   const comms = await db.select().from(commissionsTable).where(query).orderBy(desc(commissionsTable.createdAt)).limit(limitNum).offset(offset);
@@ -58670,9 +58659,12 @@ var auditExports_default = router9;
 // src/routes/payoutBatches.ts
 var import_express10 = __toESM(require_express2(), 1);
 var router10 = (0, import_express10.Router)();
-function enrichBatch(batch) {
+async function enrichBatch(batch) {
+  const [partner] = batch.partnerId ? await db.select().from(partnersTable).where(eq(partnersTable.id, batch.partnerId)) : [null];
   return {
     ...batch,
+    partnerName: partner?.displayName ?? "Unknown",
+    commissionIds: batch.commissionIds,
     totalAmount: parseFloat(batch.totalAmount),
     paidAt: batch.paidAt?.toISOString() ?? null,
     createdAt: batch.createdAt.toISOString(),
@@ -58695,30 +58687,29 @@ async function enrichCommission2(comm) {
     updatedAt: comm.updatedAt.toISOString()
   };
 }
-async function generateReference(periodStart) {
-  const ym = periodStart.slice(0, 7).replace("-", "");
-  const prefix = `PB-${ym}-`;
-  const [{ cnt }] = await db.select({ cnt: count() }).from(payoutBatchesTable).where(sql`${payoutBatchesTable.reference} like ${prefix + "%"}`);
-  const seq = (Number(cnt) + 1).toString().padStart(3, "0");
-  return `${prefix}${seq}`;
-}
 router10.get("/payout-batches", requireAuth, requireRole("admin", "finance"), async (req, res) => {
-  const { status, page = "1", limit = "20" } = req.query;
+  const { status, partnerId, page = "1", limit = "20" } = req.query;
   const pageNum = Math.max(1, parseInt(page, 10));
   const limitNum = Math.min(100, parseInt(limit, 10));
   const offset = (pageNum - 1) * limitNum;
   const conditions = [];
   if (status) conditions.push(eq(payoutBatchesTable.status, status));
+  if (partnerId) conditions.push(eq(payoutBatchesTable.partnerId, parseInt(partnerId, 10)));
   const query = conditions.length > 0 ? and(...conditions) : void 0;
   const [{ total }] = await db.select({ total: count() }).from(payoutBatchesTable).where(query);
   const batches = await db.select().from(payoutBatchesTable).where(query).orderBy(desc(payoutBatchesTable.createdAt)).limit(limitNum).offset(offset);
-  res.json({ batches: batches.map(enrichBatch), total: Number(total), page: pageNum, limit: limitNum });
+  res.json({ batches: await Promise.all(batches.map(enrichBatch)), total: Number(total), page: pageNum, limit: limitNum });
 });
 router10.post("/payout-batches", requireAuth, requireRole("admin", "finance"), async (req, res) => {
-  const { periodStart, periodEnd, commissionIds, auditNote } = req.body;
+  const { partnerId, commissionIds, bankReference, proofUrl, auditNote, status } = req.body;
   const performedBy = req.user?.userId?.toString() ?? "finance";
-  if (!periodStart || !periodEnd) {
-    res.status(400).json({ error: "periodStart and periodEnd required" });
+  const batchStatus = status === "draft" ? "draft" : "paid";
+  if (!partnerId) {
+    res.status(400).json({ error: "partnerId required" });
+    return;
+  }
+  if (!bankReference) {
+    res.status(400).json({ error: "bankReference required" });
     return;
   }
   if (!Array.isArray(commissionIds) || commissionIds.length === 0) {
@@ -58730,51 +58721,64 @@ router10.post("/payout-batches", requireAuth, requireRole("admin", "finance"), a
     res.status(400).json({ error: "One or more commission IDs were not found" });
     return;
   }
+  const wrongPartner = comms.filter((c) => c.partnerId !== partnerId);
+  if (wrongPartner.length > 0) {
+    res.status(409).json({ error: `Commissions must all belong to the selected partner. Offending IDs: ${wrongPartner.map((c) => c.id).join(", ")}` });
+    return;
+  }
   const notApproved = comms.filter((c) => c.status !== "approved");
   if (notApproved.length > 0) {
     res.status(409).json({ error: `Commissions must be in 'approved' status to be batched. Offending IDs: ${notApproved.map((c) => c.id).join(", ")}` });
     return;
   }
-  const alreadyBatched = comms.filter((c) => c.batchId != null);
-  if (alreadyBatched.length > 0) {
-    res.status(409).json({ error: `Commissions already belong to another batch. Offending IDs: ${alreadyBatched.map((c) => c.id).join(", ")}` });
+  const [{ alreadyBatchedCount }] = await db.execute(sql`
+    SELECT count(*)::int AS "alreadyBatchedCount" FROM (
+      SELECT (jsonb_array_elements_text(commission_ids::jsonb))::int AS cid
+      FROM payout_batches WHERE status != 'void'
+    ) t WHERE cid = ANY(${commissionIds})
+  `).then((r) => r.rows);
+  if (alreadyBatchedCount > 0) {
+    res.status(409).json({ error: "One or more commissions are already included in another batch" });
     return;
   }
   const totalAmount = comms.reduce((sum2, c) => sum2 + parseFloat(c.amount), 0);
-  const reference = await generateReference(periodStart);
+  const now = /* @__PURE__ */ new Date();
   const [batch] = await db.insert(payoutBatchesTable).values({
     brandId: comms[0]?.brandId ?? null,
-    reference,
-    periodStart,
-    periodEnd,
-    status: "draft",
+    partnerId,
+    commissionIds,
     totalAmount: totalAmount.toFixed(2),
-    commissionCount: comms.length,
+    bankReference,
+    proofUrl: proofUrl ?? null,
+    status: batchStatus,
+    auditNote: auditNote ?? null,
     createdBy: performedBy,
-    auditNote: auditNote ?? null
+    paidAt: batchStatus === "paid" ? now : null
   }).returning();
-  await db.update(commissionsTable).set({ batchId: batch.id }).where(inArray(commissionsTable.id, commissionIds));
   await addAuditLog(db, auditLogTable, {
     entityType: "payout_batch",
     entityId: batch.id,
     action: "created",
     previousValue: null,
-    newValue: "draft",
-    auditNote: `Batch ${reference}: ${comms.length} commissions, RM${totalAmount.toFixed(2)}${auditNote ? `. ${auditNote}` : ""}`,
+    newValue: batchStatus,
+    auditNote: `${comms.length} commissions, RM${totalAmount.toFixed(2)}, bank ref ${bankReference}${auditNote ? `. ${auditNote}` : ""}`,
     performedBy
   });
-  for (const c of comms) {
-    await addAuditLog(db, auditLogTable, {
-      entityType: "commission",
-      entityId: c.id,
-      action: "added_to_batch",
-      previousValue: null,
-      newValue: reference,
-      auditNote: null,
-      performedBy
-    });
+  if (batchStatus === "paid") {
+    await db.update(commissionsTable).set({ status: "paid", payoutReference: bankReference, paidAt: now }).where(inArray(commissionsTable.id, commissionIds));
+    for (const c of comms) {
+      await addAuditLog(db, auditLogTable, {
+        entityType: "commission",
+        entityId: c.id,
+        action: "paid",
+        previousValue: c.status,
+        newValue: "paid",
+        auditNote: `Paid via payout batch #${batch.id} (bank ref: ${bankReference})`,
+        performedBy
+      });
+    }
   }
-  res.status(201).json(enrichBatch(batch));
+  res.status(201).json(await enrichBatch(batch));
 });
 router10.get("/payout-batches/:id", requireAuth, requireRole("admin", "finance"), async (req, res) => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
@@ -58788,94 +58792,82 @@ router10.get("/payout-batches/:id", requireAuth, requireRole("admin", "finance")
     res.status(404).json({ error: "Not found" });
     return;
   }
-  const comms = await db.select().from(commissionsTable).where(eq(commissionsTable.batchId, id)).orderBy(desc(commissionsTable.createdAt));
+  const commissionIds = batch.commissionIds ?? [];
+  const comms = commissionIds.length > 0 ? await db.select().from(commissionsTable).where(inArray(commissionsTable.id, commissionIds)) : [];
   const enrichedComms = await Promise.all(comms.map(enrichCommission2));
-  res.json({ ...enrichBatch(batch), commissions: enrichedComms });
+  res.json({ ...await enrichBatch(batch), commissions: enrichedComms });
 });
-router10.patch("/payout-batches/:id/mark-paid", requireAuth, requireRole("admin", "finance"), async (req, res) => {
+router10.patch("/payout-batches/:id", requireAuth, requireRole("admin", "finance"), async (req, res) => {
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
   if (isNaN(id)) {
     res.status(400).json({ error: "Invalid ID" });
     return;
   }
-  const { payoutReference, auditNote } = req.body;
-  if (!payoutReference) {
-    res.status(400).json({ error: "payoutReference required" });
-    return;
-  }
+  const { status, bankReference, proofUrl, auditNote } = req.body;
   const performedBy = req.user?.userId?.toString() ?? "finance";
   const [batch] = await db.select().from(payoutBatchesTable).where(eq(payoutBatchesTable.id, id));
   if (!batch) {
     res.status(404).json({ error: "Not found" });
     return;
   }
-  if (batch.status !== "draft") {
-    res.status(409).json({ error: `Batch is already ${batch.status}` });
-    return;
+  const updates = {};
+  if (bankReference !== void 0) updates.bankReference = bankReference;
+  if (proofUrl !== void 0) updates.proofUrl = proofUrl;
+  if (auditNote !== void 0) updates.auditNote = auditNote;
+  let cascadeToPaid = false;
+  if (status && status !== batch.status) {
+    const allowed = {
+      draft: ["paid", "void"],
+      paid: ["disputed"],
+      disputed: ["paid"],
+      void: []
+    };
+    if (!allowed[batch.status]?.includes(status)) {
+      res.status(409).json({ error: `Cannot move batch from '${batch.status}' to '${status}'` });
+      return;
+    }
+    updates.status = status;
+    if (status === "paid" && batch.status !== "paid") {
+      updates.paidAt = /* @__PURE__ */ new Date();
+      cascadeToPaid = true;
+    }
   }
-  const now = /* @__PURE__ */ new Date();
-  const [updated] = await db.update(payoutBatchesTable).set({ status: "paid", payoutReference, paidAt: now, auditNote: auditNote ?? batch.auditNote }).where(eq(payoutBatchesTable.id, id)).returning();
-  const comms = await db.select().from(commissionsTable).where(eq(commissionsTable.batchId, id));
-  await db.update(commissionsTable).set({ status: "paid", payoutReference, paidAt: now }).where(eq(commissionsTable.batchId, id));
+  const [updated] = await db.update(payoutBatchesTable).set(updates).where(eq(payoutBatchesTable.id, id)).returning();
   await addAuditLog(db, auditLogTable, {
     entityType: "payout_batch",
     entityId: id,
-    action: "paid",
-    previousValue: "draft",
-    newValue: "paid",
-    auditNote: `Payout ref: ${payoutReference}${auditNote ? `. ${auditNote}` : ""}`,
-    performedBy
-  });
-  for (const c of comms) {
-    await addAuditLog(db, auditLogTable, {
-      entityType: "commission",
-      entityId: c.id,
-      action: "paid",
-      previousValue: c.status,
-      newValue: "paid",
-      auditNote: `Paid via batch ${batch.reference} (ref: ${payoutReference})`,
-      performedBy
-    });
-  }
-  res.json(enrichBatch(updated));
-});
-router10.patch("/payout-batches/:id/cancel", requireAuth, requireRole("admin", "finance"), async (req, res) => {
-  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-  const id = parseInt(raw, 10);
-  if (isNaN(id)) {
-    res.status(400).json({ error: "Invalid ID" });
-    return;
-  }
-  const { auditNote } = req.body;
-  const performedBy = req.user?.userId?.toString() ?? "finance";
-  const [batch] = await db.select().from(payoutBatchesTable).where(eq(payoutBatchesTable.id, id));
-  if (!batch) {
-    res.status(404).json({ error: "Not found" });
-    return;
-  }
-  if (batch.status !== "draft") {
-    res.status(409).json({ error: `Only draft batches can be cancelled (batch is ${batch.status})` });
-    return;
-  }
-  await db.update(commissionsTable).set({ batchId: null }).where(eq(commissionsTable.batchId, id));
-  const [updated] = await db.update(payoutBatchesTable).set({ status: "cancelled", auditNote: auditNote ?? batch.auditNote }).where(eq(payoutBatchesTable.id, id)).returning();
-  await addAuditLog(db, auditLogTable, {
-    entityType: "payout_batch",
-    entityId: id,
-    action: "cancelled",
-    previousValue: "draft",
-    newValue: "cancelled",
+    action: "updated",
+    previousValue: batch.status,
+    newValue: updated.status,
     auditNote: auditNote ?? null,
     performedBy
   });
-  res.json(enrichBatch(updated));
+  if (cascadeToPaid) {
+    const commissionIds = batch.commissionIds ?? [];
+    if (commissionIds.length > 0) {
+      await db.update(commissionsTable).set({ status: "paid", payoutReference: updated.bankReference, paidAt: updated.paidAt }).where(inArray(commissionsTable.id, commissionIds));
+      for (const cid of commissionIds) {
+        await addAuditLog(db, auditLogTable, {
+          entityType: "commission",
+          entityId: cid,
+          action: "paid",
+          previousValue: "approved",
+          newValue: "paid",
+          auditNote: `Paid via payout batch #${id} (bank ref: ${updated.bankReference})`,
+          performedBy
+        });
+      }
+    }
+  }
+  res.json(await enrichBatch(updated));
 });
 function batchToCSV(batch, comms) {
-  const header = ["Batch Reference", "Partner Name", "Lead Name", "Amount (RM)", "Commission Type", "Approved At"];
+  const header = ["Batch ID", "Partner", "Bank Reference", "Lead Name", "Amount (RM)", "Commission Type", "Approved At"];
   const rows = comms.map((c) => [
-    batch.reference,
-    c.partnerName ?? "",
+    batch.id,
+    batch.partnerName,
+    batch.bankReference,
     c.leadName ?? "",
     parseFloat(c.amount),
     c.commissionType,
@@ -58895,14 +58887,15 @@ router10.get("/payout-batches/:id/export", requireAuth, requireRole("admin", "fi
     res.status(404).json({ error: "Not found" });
     return;
   }
-  const comms = await db.select().from(commissionsTable).where(eq(commissionsTable.batchId, id));
-  const enriched = await Promise.all(comms.map(async (c) => {
+  const enrichedBatch = await enrichBatch(batch);
+  const commissionIds = batch.commissionIds ?? [];
+  const comms = commissionIds.length > 0 ? await db.select().from(commissionsTable).where(inArray(commissionsTable.id, commissionIds)) : [];
+  const enrichedComms = await Promise.all(comms.map(async (c) => {
     const [lead] = await db.select().from(leadsTable).where(eq(leadsTable.id, c.leadId));
-    const [partner] = await db.select().from(partnersTable).where(eq(partnersTable.id, c.partnerId));
-    return { ...c, leadName: lead?.name ?? "", partnerName: partner?.displayName ?? "" };
+    return { ...c, leadName: lead?.name ?? "" };
   }));
-  const csvData = batchToCSV(batch, enriched);
-  const filename = `payout_batch_${batch.reference}.csv`;
+  const csvData = batchToCSV(enrichedBatch, enrichedComms);
+  const filename = `payout_batch_${batch.id}.csv`;
   res.json({ csvData, filename, rowCount: comms.length });
 });
 var payoutBatches_default = router10;

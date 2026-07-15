@@ -580,6 +580,10 @@ paths:
           in: query
           schema:
             type: string
+        - name: partnerId
+          in: query
+          schema:
+            type: ["integer", "null"]
         - name: page
           in: query
           schema:
@@ -598,7 +602,7 @@ paths:
     post:
       operationId: createPayoutBatch
       tags: [payoutBatches]
-      summary: Create a payout batch from approved commissions
+      summary: Create a payout batch for a partner (logs a transfer, paid by default)
       requestBody:
         required: true
         content:
@@ -617,7 +621,7 @@ paths:
     get:
       operationId: getPayoutBatch
       tags: [payoutBatches]
-      summary: Get payout batch detail (with linked commissions)
+      summary: Get payout batch detail (with resolved commissions)
       parameters:
         - name: id
           in: path
@@ -631,12 +635,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PayoutBatchDetail"
-
-  /payout-batches/{id}/mark-paid:
     patch:
-      operationId: markPayoutBatchPaid
+      operationId: updatePayoutBatch
       tags: [payoutBatches]
-      summary: Mark a payout batch (and all its commissions) as paid
+      summary: Update a payout batch (status transitions, bank reference, proof, note)
       parameters:
         - name: id
           in: path
@@ -648,35 +650,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PayoutAction"
+              $ref: "#/components/schemas/PayoutBatchUpdate"
       responses:
         "200":
-          description: Payout batch paid
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PayoutBatch"
-
-  /payout-batches/{id}/cancel:
-    patch:
-      operationId: cancelPayoutBatch
-      tags: [payoutBatches]
-      summary: Cancel a draft payout batch and release its commissions
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CommissionAction"
-      responses:
-        "200":
-          description: Payout batch cancelled
+          description: Payout batch updated
           content:
             application/json:
               schema:
@@ -1538,32 +1515,34 @@ components:
 
     PayoutBatch:
       type: object
-      required: [id, reference, periodStart, periodEnd, status, totalAmount, commissionCount, createdAt]
+      required: [id, commissionIds, totalAmount, bankReference, status, createdBy, createdAt]
       properties:
         id:
           type: integer
         brandId:
           type: ["integer", "null"]
-        reference:
+        partnerId:
+          type: ["integer", "null"]
+        partnerName:
           type: string
-        periodStart:
-          type: string
-        periodEnd:
-          type: string
-        status:
-          type: string
-          enum: [draft, paid, cancelled]
+        commissionIds:
+          type: array
+          items:
+            type: integer
         totalAmount:
           type: number
-        commissionCount:
-          type: integer
-        payoutReference:
+        bankReference:
+          type: string
+        proofUrl:
           type: ["string", "null"]
-        paidAt:
+        status:
+          type: string
+          enum: [draft, paid, disputed, void]
+        auditNote:
           type: ["string", "null"]
         createdBy:
-          type: ["string", "null"]
-        auditNote:
+          type: string
+        paidAt:
           type: ["string", "null"]
         createdAt:
           type: string
@@ -1587,32 +1566,34 @@ components:
 
     PayoutBatchDetail:
       type: object
-      required: [id, reference, periodStart, periodEnd, status, totalAmount, commissionCount, createdAt, commissions]
+      required: [id, commissionIds, totalAmount, bankReference, status, createdBy, createdAt, commissions]
       properties:
         id:
           type: integer
         brandId:
           type: ["integer", "null"]
-        reference:
+        partnerId:
+          type: ["integer", "null"]
+        partnerName:
           type: string
-        periodStart:
-          type: string
-        periodEnd:
-          type: string
-        status:
-          type: string
-          enum: [draft, paid, cancelled]
+        commissionIds:
+          type: array
+          items:
+            type: integer
         totalAmount:
           type: number
-        commissionCount:
-          type: integer
-        payoutReference:
+        bankReference:
+          type: string
+        proofUrl:
           type: ["string", "null"]
-        paidAt:
+        status:
+          type: string
+          enum: [draft, paid, disputed, void]
+        auditNote:
           type: ["string", "null"]
         createdBy:
-          type: ["string", "null"]
-        auditNote:
+          type: string
+        paidAt:
           type: ["string", "null"]
         createdAt:
           type: string
@@ -1625,16 +1606,34 @@ components:
 
     PayoutBatchInput:
       type: object
-      required: [periodStart, periodEnd, commissionIds]
+      required: [partnerId, commissionIds, bankReference]
       properties:
-        periodStart:
-          type: string
-        periodEnd:
-          type: string
+        partnerId:
+          type: integer
         commissionIds:
           type: array
           items:
             type: integer
+        bankReference:
+          type: string
+        proofUrl:
+          type: string
+        auditNote:
+          type: string
+        status:
+          type: string
+          enum: [draft, paid]
+
+    PayoutBatchUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [draft, paid, disputed, void]
+        bankReference:
+          type: string
+        proofUrl:
+          type: string
         auditNote:
           type: string
 

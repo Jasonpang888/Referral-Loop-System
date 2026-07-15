@@ -6,12 +6,10 @@
  * OpenAPI spec version: 2.0.0
  */
 
-export type PayoutBatchDetailStatus = typeof PayoutBatchDetailStatus[keyof typeof PayoutBatchDetailStatus];
+export type PayoutBatchInputStatus = typeof PayoutBatchInputStatus[keyof typeof PayoutBatchInputStatus];
 
 
-export const PayoutBatchDetailStatus = {
+export const PayoutBatchInputStatus = {
   draft: 'draft',
   paid: 'paid',
-  disputed: 'disputed',
-  void: 'void',
 } as const;

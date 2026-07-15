@@ -5,13 +5,11 @@
  * Partner Growth Platform — Multi-Brand Referral Management API
  * OpenAPI spec version: 2.0.0
  */
-import type { PayoutBatchInputStatus } from './payoutBatchInputStatus';
+import type { PayoutBatchUpdateStatus } from './payoutBatchUpdateStatus';
 
-export interface PayoutBatchInput {
-  partnerId: number;
-  commissionIds: number[];
-  bankReference: string;
+export interface PayoutBatchUpdate {
+  status?: PayoutBatchUpdateStatus;
+  bankReference?: string;
   proofUrl?: string;
   auditNote?: string;
-  status?: PayoutBatchInputStatus;
 }

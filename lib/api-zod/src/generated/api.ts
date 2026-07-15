@@ -734,6 +734,7 @@ export const DisputeCommissionResponse = zod.object({
  */
 export const GetPayoutBatchesQueryParams = zod.object({
   "status": zod.coerce.string().optional(),
+  "partnerId": zod.coerce.number().nullish(),
   "page": zod.coerce.number().optional(),
   "limit": zod.coerce.number().optional()
 })
@@ -742,16 +743,16 @@ export const GetPayoutBatchesResponse = zod.object({
   "batches": zod.array(zod.object({
   "id": zod.number(),
   "brandId": zod.number().nullish(),
-  "reference": zod.string(),
-  "periodStart": zod.string(),
-  "periodEnd": zod.string(),
-  "status": zod.enum(['draft', 'paid', 'cancelled']),
+  "partnerId": zod.number().nullish(),
+  "partnerName": zod.string().optional(),
+  "commissionIds": zod.array(zod.number()),
   "totalAmount": zod.number(),
-  "commissionCount": zod.number(),
-  "payoutReference": zod.string().nullish(),
-  "paidAt": zod.string().nullish(),
-  "createdBy": zod.string().nullish(),
+  "bankReference": zod.string(),
+  "proofUrl": zod.string().nullish(),
+  "status": zod.enum(['draft', 'paid', 'disputed', 'void']),
   "auditNote": zod.string().nullish(),
+  "createdBy": zod.string(),
+  "paidAt": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })),
@@ -762,35 +763,37 @@ export const GetPayoutBatchesResponse = zod.object({
 
 
 /**
- * @summary Create a payout batch from approved commissions
+ * @summary Create a payout batch for a partner (logs a transfer, paid by default)
  */
 export const CreatePayoutBatchBody = zod.object({
-  "periodStart": zod.string(),
-  "periodEnd": zod.string(),
+  "partnerId": zod.number(),
   "commissionIds": zod.array(zod.number()),
-  "auditNote": zod.string().optional()
+  "bankReference": zod.string(),
+  "proofUrl": zod.string().optional(),
+  "auditNote": zod.string().optional(),
+  "status": zod.enum(['draft', 'paid']).optional()
 })
 
 export const CreatePayoutBatchResponse = zod.object({
   "id": zod.number(),
   "brandId": zod.number().nullish(),
-  "reference": zod.string(),
-  "periodStart": zod.string(),
-  "periodEnd": zod.string(),
-  "status": zod.enum(['draft', 'paid', 'cancelled']),
+  "partnerId": zod.number().nullish(),
+  "partnerName": zod.string().optional(),
+  "commissionIds": zod.array(zod.number()),
   "totalAmount": zod.number(),
-  "commissionCount": zod.number(),
-  "payoutReference": zod.string().nullish(),
-  "paidAt": zod.string().nullish(),
-  "createdBy": zod.string().nullish(),
+  "bankReference": zod.string(),
+  "proofUrl": zod.string().nullish(),
+  "status": zod.enum(['draft', 'paid', 'disputed', 'void']),
   "auditNote": zod.string().nullish(),
+  "createdBy": zod.string(),
+  "paidAt": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })
 
 
 /**
- * @summary Get payout batch detail (with linked commissions)
+ * @summary Get payout batch detail (with resolved commissions)
  */
 export const GetPayoutBatchParams = zod.object({
   "id": zod.coerce.number()
@@ -799,16 +802,16 @@ export const GetPayoutBatchParams = zod.object({
 export const GetPayoutBatchResponse = zod.object({
   "id": zod.number(),
   "brandId": zod.number().nullish(),
-  "reference": zod.string(),
-  "periodStart": zod.string(),
-  "periodEnd": zod.string(),
-  "status": zod.enum(['draft', 'paid', 'cancelled']),
+  "partnerId": zod.number().nullish(),
+  "partnerName": zod.string().optional(),
+  "commissionIds": zod.array(zod.number()),
   "totalAmount": zod.number(),
-  "commissionCount": zod.number(),
-  "payoutReference": zod.string().nullish(),
-  "paidAt": zod.string().nullish(),
-  "createdBy": zod.string().nullish(),
+  "bankReference": zod.string(),
+  "proofUrl": zod.string().nullish(),
+  "status": zod.enum(['draft', 'paid', 'disputed', 'void']),
   "auditNote": zod.string().nullish(),
+  "createdBy": zod.string(),
+  "paidAt": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional(),
   "commissions": zod.array(zod.object({
@@ -837,59 +840,32 @@ export const GetPayoutBatchResponse = zod.object({
 
 
 /**
- * @summary Mark a payout batch (and all its commissions) as paid
+ * @summary Update a payout batch (status transitions, bank reference, proof, note)
  */
-export const MarkPayoutBatchPaidParams = zod.object({
+export const UpdatePayoutBatchParams = zod.object({
   "id": zod.coerce.number()
 })
 
-export const MarkPayoutBatchPaidBody = zod.object({
-  "payoutReference": zod.string(),
+export const UpdatePayoutBatchBody = zod.object({
+  "status": zod.enum(['draft', 'paid', 'disputed', 'void']).optional(),
+  "bankReference": zod.string().optional(),
+  "proofUrl": zod.string().optional(),
   "auditNote": zod.string().optional()
 })
 
-export const MarkPayoutBatchPaidResponse = zod.object({
+export const UpdatePayoutBatchResponse = zod.object({
   "id": zod.number(),
   "brandId": zod.number().nullish(),
-  "reference": zod.string(),
-  "periodStart": zod.string(),
-  "periodEnd": zod.string(),
-  "status": zod.enum(['draft', 'paid', 'cancelled']),
+  "partnerId": zod.number().nullish(),
+  "partnerName": zod.string().optional(),
+  "commissionIds": zod.array(zod.number()),
   "totalAmount": zod.number(),
-  "commissionCount": zod.number(),
-  "payoutReference": zod.string().nullish(),
-  "paidAt": zod.string().nullish(),
-  "createdBy": zod.string().nullish(),
+  "bankReference": zod.string(),
+  "proofUrl": zod.string().nullish(),
+  "status": zod.enum(['draft', 'paid', 'disputed', 'void']),
   "auditNote": zod.string().nullish(),
-  "createdAt": zod.string(),
-  "updatedAt": zod.string().optional()
-})
-
-
-/**
- * @summary Cancel a draft payout batch and release its commissions
- */
-export const CancelPayoutBatchParams = zod.object({
-  "id": zod.coerce.number()
-})
-
-export const CancelPayoutBatchBody = zod.object({
-  "auditNote": zod.string().optional()
-})
-
-export const CancelPayoutBatchResponse = zod.object({
-  "id": zod.number(),
-  "brandId": zod.number().nullish(),
-  "reference": zod.string(),
-  "periodStart": zod.string(),
-  "periodEnd": zod.string(),
-  "status": zod.enum(['draft', 'paid', 'cancelled']),
-  "totalAmount": zod.number(),
-  "commissionCount": zod.number(),
-  "payoutReference": zod.string().nullish(),
+  "createdBy": zod.string(),
   "paidAt": zod.string().nullish(),
-  "createdBy": zod.string().nullish(),
-  "auditNote": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string().optional()
 })

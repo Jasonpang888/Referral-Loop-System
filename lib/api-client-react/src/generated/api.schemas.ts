@@ -364,27 +364,28 @@ export type PayoutBatchStatus = typeof PayoutBatchStatus[keyof typeof PayoutBatc
 export const PayoutBatchStatus = {
   draft: 'draft',
   paid: 'paid',
-  cancelled: 'cancelled',
+  disputed: 'disputed',
+  void: 'void',
 } as const;
 
 export interface PayoutBatch {
   id: number;
   /** @nullable */
   brandId?: number | null;
-  reference: string;
-  periodStart: string;
-  periodEnd: string;
-  status: PayoutBatchStatus;
+  /** @nullable */
+  partnerId?: number | null;
+  partnerName?: string;
+  commissionIds: number[];
   totalAmount: number;
-  commissionCount: number;
+  bankReference: string;
   /** @nullable */
-  payoutReference?: string | null;
-  /** @nullable */
-  paidAt?: string | null;
-  /** @nullable */
-  createdBy?: string | null;
+  proofUrl?: string | null;
+  status: PayoutBatchStatus;
   /** @nullable */
   auditNote?: string | null;
+  createdBy: string;
+  /** @nullable */
+  paidAt?: string | null;
   createdAt: string;
   updatedAt?: string;
 }
@@ -402,36 +403,64 @@ export type PayoutBatchDetailStatus = typeof PayoutBatchDetailStatus[keyof typeo
 export const PayoutBatchDetailStatus = {
   draft: 'draft',
   paid: 'paid',
-  cancelled: 'cancelled',
+  disputed: 'disputed',
+  void: 'void',
 } as const;
 
 export interface PayoutBatchDetail {
   id: number;
   /** @nullable */
   brandId?: number | null;
-  reference: string;
-  periodStart: string;
-  periodEnd: string;
-  status: PayoutBatchDetailStatus;
+  /** @nullable */
+  partnerId?: number | null;
+  partnerName?: string;
+  commissionIds: number[];
   totalAmount: number;
-  commissionCount: number;
+  bankReference: string;
   /** @nullable */
-  payoutReference?: string | null;
-  /** @nullable */
-  paidAt?: string | null;
-  /** @nullable */
-  createdBy?: string | null;
+  proofUrl?: string | null;
+  status: PayoutBatchDetailStatus;
   /** @nullable */
   auditNote?: string | null;
+  createdBy: string;
+  /** @nullable */
+  paidAt?: string | null;
   createdAt: string;
   updatedAt?: string;
   commissions: Commission[];
 }
 
+export type PayoutBatchInputStatus = typeof PayoutBatchInputStatus[keyof typeof PayoutBatchInputStatus];
+
+
+export const PayoutBatchInputStatus = {
+  draft: 'draft',
+  paid: 'paid',
+} as const;
+
 export interface PayoutBatchInput {
-  periodStart: string;
-  periodEnd: string;
+  partnerId: number;
   commissionIds: number[];
+  bankReference: string;
+  proofUrl?: string;
+  auditNote?: string;
+  status?: PayoutBatchInputStatus;
+}
+
+export type PayoutBatchUpdateStatus = typeof PayoutBatchUpdateStatus[keyof typeof PayoutBatchUpdateStatus];
+
+
+export const PayoutBatchUpdateStatus = {
+  draft: 'draft',
+  paid: 'paid',
+  disputed: 'disputed',
+  void: 'void',
+} as const;
+
+export interface PayoutBatchUpdate {
+  status?: PayoutBatchUpdateStatus;
+  bankReference?: string;
+  proofUrl?: string;
   auditNote?: string;
 }
 
@@ -738,6 +767,10 @@ limit?: number;
 
 export type GetPayoutBatchesParams = {
 status?: string;
+/**
+ * @nullable
+ */
+partnerId?: number | null;
 page?: number;
 limit?: number;
 };

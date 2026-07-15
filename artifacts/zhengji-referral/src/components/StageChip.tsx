@@ -41,7 +41,8 @@ export function CommissionStatusChip({ status }: { status: string }) {
 const BATCH_STATUS_CONFIG: Record<string, { label: string; labelZh: string; className: string }> = {
   draft: { label: "Draft", labelZh: "草稿", className: "bg-yellow-100 text-yellow-800 border-yellow-200" },
   paid: { label: "Paid", labelZh: "已付款", className: "bg-emerald-100 text-emerald-800 border-emerald-200" },
-  cancelled: { label: "Cancelled", labelZh: "已取消", className: "bg-gray-100 text-gray-600 border-gray-200" },
+  disputed: { label: "Disputed", labelZh: "有争议", className: "bg-orange-100 text-orange-800 border-orange-200" },
+  void: { label: "Void", labelZh: "已作废", className: "bg-gray-100 text-gray-600 border-gray-200" },
 };
 
 export function BatchStatusChip({ status }: { status: string }) {

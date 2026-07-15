@@ -12,20 +12,20 @@ export interface PayoutBatchDetail {
   id: number;
   /** @nullable */
   brandId?: number | null;
-  reference: string;
-  periodStart: string;
-  periodEnd: string;
-  status: PayoutBatchDetailStatus;
+  /** @nullable */
+  partnerId?: number | null;
+  partnerName?: string;
+  commissionIds: number[];
   totalAmount: number;
-  commissionCount: number;
+  bankReference: string;
   /** @nullable */
-  payoutReference?: string | null;
-  /** @nullable */
-  paidAt?: string | null;
-  /** @nullable */
-  createdBy?: string | null;
+  proofUrl?: string | null;
+  status: PayoutBatchDetailStatus;
   /** @nullable */
   auditNote?: string | null;
+  createdBy: string;
+  /** @nullable */
+  paidAt?: string | null;
   createdAt: string;
   updatedAt?: string;
   commissions: Commission[];
