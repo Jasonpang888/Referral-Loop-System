@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLogout } from "@workspace/api-client-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { roleMatches } from "@/lib/roles";
 
 interface NavItem {
   href: string;
@@ -33,17 +34,20 @@ const partnerNav: NavItem[] = [
   { href: "/partner/statement", label: "Statement", labelZh: "月度报表" },
 ];
 
+// role is the raw DB value (e.g. super_admin, outlet_staff, finance, partner_admin,
+// partner_staff) — must go through roleMatches/the alias table, not exact string
+// equality, or every real account falls through to the empty-nav default below.
 function getRoleNav(role?: string): NavItem[] {
-  if (role === "admin") return adminNav;
-  if (role === "zhengji_staff") return staffNav;
-  if (role === "kiri_partner") return partnerNav;
+  if (roleMatches(role, ["admin"])) return adminNav;
+  if (roleMatches(role, ["zhengji_staff"])) return staffNav;
+  if (roleMatches(role, ["kiri_partner"])) return partnerNav;
   return [];
 }
 
 function getRoleLabel(role?: string) {
-  if (role === "admin") return { en: "Admin", zh: "管理员" };
-  if (role === "zhengji_staff") return { en: "Zhengji Staff", zh: "正记员工" };
-  if (role === "kiri_partner") return { en: "Kiri Partner", zh: "Kiri合作伙伴" };
+  if (roleMatches(role, ["admin"])) return { en: "Admin", zh: "管理员" };
+  if (roleMatches(role, ["zhengji_staff"])) return { en: "Zhengji Staff", zh: "正脊堂员工" };
+  if (roleMatches(role, ["kiri_partner"])) return { en: "Kiri Partner", zh: "Kiri合作伙伴" };
   return { en: "User", zh: "用户" };
 }
 
