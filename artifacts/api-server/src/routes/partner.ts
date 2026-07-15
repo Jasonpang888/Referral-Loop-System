@@ -12,7 +12,7 @@ import { requireAuth, requireRole, hashPassword, generateToken, addAuditLog } fr
 
 const router: IRouter = Router();
 
-router.get("/partners", requireAuth, requireRole("admin", "zhengji_staff"), async (req, res): Promise<void> => {
+router.get("/partners", requireAuth, requireRole("admin", "zhengji_staff", "finance"), async (req, res): Promise<void> => {
   const partners = await db.select().from(partnersTable).orderBy(desc(partnersTable.createdAt));
   res.json(partners.map(p => ({
     ...p,

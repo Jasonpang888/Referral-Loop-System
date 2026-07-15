@@ -58130,7 +58130,7 @@ var commissions_default = router5;
 // src/routes/partner.ts
 var import_express6 = __toESM(require_express2(), 1);
 var router6 = (0, import_express6.Router)();
-router6.get("/partners", requireAuth, requireRole("admin", "zhengji_staff"), async (req, res) => {
+router6.get("/partners", requireAuth, requireRole("admin", "zhengji_staff", "finance"), async (req, res) => {
   const partners = await db.select().from(partnersTable).orderBy(desc(partnersTable.createdAt));
   res.json(partners.map((p) => ({
     ...p,
