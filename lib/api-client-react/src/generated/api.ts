@@ -48,6 +48,7 @@ import type {
   GetPartnerStatementParams,
   GetPartnerStatsParams,
   GetPartnersParams,
+  GetPayoutBatchesParams,
   GetPipelineBreakdownParams,
   GetPlatformPartnersParams,
   HealthStatus,
@@ -63,6 +64,10 @@ import type {
   PartnerStats,
   PaymentVerification,
   PayoutAction,
+  PayoutBatch,
+  PayoutBatchDetail,
+  PayoutBatchInput,
+  PayoutBatchList,
   PipelineStageCount,
   PlatformPartnerList,
   PlatformStats,
@@ -1987,6 +1992,459 @@ export const useDisputeCommission = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getDisputeCommissionMutationOptions(options));
     }
+
+export const getGetPayoutBatchesUrl = (params?: GetPayoutBatchesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/payout-batches?${stringifiedParams}` : `/api/payout-batches`
+}
+
+/**
+ * @summary List payout batches
+ */
+export const getPayoutBatches = async (params?: GetPayoutBatchesParams, options?: RequestInit): Promise<PayoutBatchList> => {
+
+  return customFetch<PayoutBatchList>(getGetPayoutBatchesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPayoutBatchesQueryKey = (params?: GetPayoutBatchesParams,) => {
+    return [
+    `/api/payout-batches`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetPayoutBatchesQueryOptions = <TData = Awaited<ReturnType<typeof getPayoutBatches>>, TError = ErrorType<unknown>>(params?: GetPayoutBatchesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPayoutBatches>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPayoutBatchesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPayoutBatches>>> = ({ signal }) => getPayoutBatches(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPayoutBatches>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPayoutBatchesQueryResult = NonNullable<Awaited<ReturnType<typeof getPayoutBatches>>>
+export type GetPayoutBatchesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List payout batches
+ */
+
+export function useGetPayoutBatches<TData = Awaited<ReturnType<typeof getPayoutBatches>>, TError = ErrorType<unknown>>(
+ params?: GetPayoutBatchesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPayoutBatches>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPayoutBatchesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCreatePayoutBatchUrl = () => {
+
+
+
+
+  return `/api/payout-batches`
+}
+
+/**
+ * @summary Create a payout batch from approved commissions
+ */
+export const createPayoutBatch = async (payoutBatchInput: PayoutBatchInput, options?: RequestInit): Promise<PayoutBatch> => {
+
+  return customFetch<PayoutBatch>(getCreatePayoutBatchUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(payoutBatchInput)
+  }
+);}
+
+
+
+
+
+export const getCreatePayoutBatchMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPayoutBatch>>, TError,{data: BodyType<PayoutBatchInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createPayoutBatch>>, TError,{data: BodyType<PayoutBatchInput>}, TContext> => {
+
+const mutationKey = ['createPayoutBatch'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createPayoutBatch>>, {data: BodyType<PayoutBatchInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createPayoutBatch(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreatePayoutBatchMutationResult = NonNullable<Awaited<ReturnType<typeof createPayoutBatch>>>
+    export type CreatePayoutBatchMutationBody = BodyType<PayoutBatchInput>
+    export type CreatePayoutBatchMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a payout batch from approved commissions
+ */
+export const useCreatePayoutBatch = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPayoutBatch>>, TError,{data: BodyType<PayoutBatchInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createPayoutBatch>>,
+        TError,
+        {data: BodyType<PayoutBatchInput>},
+        TContext
+      > => {
+      return useMutation(getCreatePayoutBatchMutationOptions(options));
+    }
+
+export const getGetPayoutBatchUrl = (id: number,) => {
+
+
+
+
+  return `/api/payout-batches/${id}`
+}
+
+/**
+ * @summary Get payout batch detail (with linked commissions)
+ */
+export const getPayoutBatch = async (id: number, options?: RequestInit): Promise<PayoutBatchDetail> => {
+
+  return customFetch<PayoutBatchDetail>(getGetPayoutBatchUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPayoutBatchQueryKey = (id: number,) => {
+    return [
+    `/api/payout-batches/${id}`
+    ] as const;
+    }
+
+
+export const getGetPayoutBatchQueryOptions = <TData = Awaited<ReturnType<typeof getPayoutBatch>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPayoutBatch>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPayoutBatchQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPayoutBatch>>> = ({ signal }) => getPayoutBatch(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPayoutBatch>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPayoutBatchQueryResult = NonNullable<Awaited<ReturnType<typeof getPayoutBatch>>>
+export type GetPayoutBatchQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get payout batch detail (with linked commissions)
+ */
+
+export function useGetPayoutBatch<TData = Awaited<ReturnType<typeof getPayoutBatch>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPayoutBatch>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPayoutBatchQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getMarkPayoutBatchPaidUrl = (id: number,) => {
+
+
+
+
+  return `/api/payout-batches/${id}/mark-paid`
+}
+
+/**
+ * @summary Mark a payout batch (and all its commissions) as paid
+ */
+export const markPayoutBatchPaid = async (id: number,
+    payoutAction: PayoutAction, options?: RequestInit): Promise<PayoutBatch> => {
+
+  return customFetch<PayoutBatch>(getMarkPayoutBatchPaidUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(payoutAction)
+  }
+);}
+
+
+
+
+
+export const getMarkPayoutBatchPaidMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markPayoutBatchPaid>>, TError,{id: number;data: BodyType<PayoutAction>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof markPayoutBatchPaid>>, TError,{id: number;data: BodyType<PayoutAction>}, TContext> => {
+
+const mutationKey = ['markPayoutBatchPaid'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof markPayoutBatchPaid>>, {id: number;data: BodyType<PayoutAction>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  markPayoutBatchPaid(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MarkPayoutBatchPaidMutationResult = NonNullable<Awaited<ReturnType<typeof markPayoutBatchPaid>>>
+    export type MarkPayoutBatchPaidMutationBody = BodyType<PayoutAction>
+    export type MarkPayoutBatchPaidMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Mark a payout batch (and all its commissions) as paid
+ */
+export const useMarkPayoutBatchPaid = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markPayoutBatchPaid>>, TError,{id: number;data: BodyType<PayoutAction>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof markPayoutBatchPaid>>,
+        TError,
+        {id: number;data: BodyType<PayoutAction>},
+        TContext
+      > => {
+      return useMutation(getMarkPayoutBatchPaidMutationOptions(options));
+    }
+
+export const getCancelPayoutBatchUrl = (id: number,) => {
+
+
+
+
+  return `/api/payout-batches/${id}/cancel`
+}
+
+/**
+ * @summary Cancel a draft payout batch and release its commissions
+ */
+export const cancelPayoutBatch = async (id: number,
+    commissionAction: CommissionAction, options?: RequestInit): Promise<PayoutBatch> => {
+
+  return customFetch<PayoutBatch>(getCancelPayoutBatchUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(commissionAction)
+  }
+);}
+
+
+
+
+
+export const getCancelPayoutBatchMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelPayoutBatch>>, TError,{id: number;data: BodyType<CommissionAction>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelPayoutBatch>>, TError,{id: number;data: BodyType<CommissionAction>}, TContext> => {
+
+const mutationKey = ['cancelPayoutBatch'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelPayoutBatch>>, {id: number;data: BodyType<CommissionAction>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  cancelPayoutBatch(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelPayoutBatchMutationResult = NonNullable<Awaited<ReturnType<typeof cancelPayoutBatch>>>
+    export type CancelPayoutBatchMutationBody = BodyType<CommissionAction>
+    export type CancelPayoutBatchMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Cancel a draft payout batch and release its commissions
+ */
+export const useCancelPayoutBatch = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelPayoutBatch>>, TError,{id: number;data: BodyType<CommissionAction>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof cancelPayoutBatch>>,
+        TError,
+        {id: number;data: BodyType<CommissionAction>},
+        TContext
+      > => {
+      return useMutation(getCancelPayoutBatchMutationOptions(options));
+    }
+
+export const getExportPayoutBatchUrl = (id: number,) => {
+
+
+
+
+  return `/api/payout-batches/${id}/export`
+}
+
+/**
+ * @summary Export a payout batch's commissions as CSV
+ */
+export const exportPayoutBatch = async (id: number, options?: RequestInit): Promise<ExportResult> => {
+
+  return customFetch<ExportResult>(getExportPayoutBatchUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getExportPayoutBatchQueryKey = (id: number,) => {
+    return [
+    `/api/payout-batches/${id}/export`
+    ] as const;
+    }
+
+
+export const getExportPayoutBatchQueryOptions = <TData = Awaited<ReturnType<typeof exportPayoutBatch>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportPayoutBatch>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getExportPayoutBatchQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportPayoutBatch>>> = ({ signal }) => exportPayoutBatch(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof exportPayoutBatch>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ExportPayoutBatchQueryResult = NonNullable<Awaited<ReturnType<typeof exportPayoutBatch>>>
+export type ExportPayoutBatchQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Export a payout batch's commissions as CSV
+ */
+
+export function useExportPayoutBatch<TData = Awaited<ReturnType<typeof exportPayoutBatch>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportPayoutBatch>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getExportPayoutBatchQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getGetPartnerLeadsUrl = (params?: GetPartnerLeadsParams,) => {
   const normalizedParams = new URLSearchParams();

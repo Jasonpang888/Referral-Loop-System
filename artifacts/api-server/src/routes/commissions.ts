@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { db, commissionsTable, leadsTable, partnersTable, auditLogTable } from "@workspace/db";
-import { eq, and, desc, count } from "drizzle-orm";
+import { eq, and, desc, count, isNull } from "drizzle-orm";
 import { requireAuth, requireRole, addAuditLog } from "../lib/auth";
 
 const router: IRouter = Router();
@@ -22,14 +22,15 @@ async function enrichCommission(comm: any) {
   };
 }
 
-router.get("/commissions", requireAuth, requireRole("admin", "zhengji_staff"), async (req, res): Promise<void> => {
-  const { status, page = "1", limit = "20" } = req.query as Record<string, string>;
+router.get("/commissions", requireAuth, requireRole("admin", "zhengji_staff", "finance"), async (req, res): Promise<void> => {
+  const { status, unbatched, page = "1", limit = "20" } = req.query as Record<string, string>;
   const pageNum = Math.max(1, parseInt(page, 10));
   const limitNum = Math.min(100, parseInt(limit, 10));
   const offset = (pageNum - 1) * limitNum;
 
   const conditions = [];
   if (status) conditions.push(eq(commissionsTable.status, status as any));
+  if (unbatched === "true") conditions.push(isNull(commissionsTable.batchId));
 
   const query = conditions.length > 0 ? and(...conditions) : undefined;
 

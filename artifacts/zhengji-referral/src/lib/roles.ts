@@ -9,7 +9,8 @@
  */
 const ROLE_ALIASES: Record<string, string[]> = {
   admin: ["admin", "super_admin"],
-  zhengji_staff: ["zhengji_staff", "brand_admin", "outlet_staff", "finance"],
+  zhengji_staff: ["zhengji_staff", "brand_admin", "outlet_staff"],
+  finance: ["finance"],
   kiri_partner: ["kiri_partner", "partner_admin", "partner_staff"],
 };
 
@@ -32,6 +33,7 @@ export function roleMatches(userRole: string | undefined, roles: string[]): bool
 export function getRoleHomePath(role: string | undefined): string | null {
   if (!role) return null;
   if (roleMatches(role, ["admin"])) return "/admin";
+  if (roleMatches(role, ["finance"])) return "/finance";
   if (roleMatches(role, ["zhengji_staff"])) return "/staff";
   if (roleMatches(role, ["kiri_partner"])) return "/partner";
   return null;

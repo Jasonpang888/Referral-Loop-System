@@ -16,6 +16,10 @@ partnerId?: number | null;
  * @nullable
  */
 brandId?: number | null;
+/**
+ * If true, only return commissions not yet assigned to a payout batch
+ */
+unbatched?: boolean;
 page?: number;
 limit?: number;
 };

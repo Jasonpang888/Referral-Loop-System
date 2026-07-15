@@ -38,6 +38,22 @@ export function CommissionStatusChip({ status }: { status: string }) {
   );
 }
 
+const BATCH_STATUS_CONFIG: Record<string, { label: string; labelZh: string; className: string }> = {
+  draft: { label: "Draft", labelZh: "草稿", className: "bg-yellow-100 text-yellow-800 border-yellow-200" },
+  paid: { label: "Paid", labelZh: "已付款", className: "bg-emerald-100 text-emerald-800 border-emerald-200" },
+  cancelled: { label: "Cancelled", labelZh: "已取消", className: "bg-gray-100 text-gray-600 border-gray-200" },
+};
+
+export function BatchStatusChip({ status }: { status: string }) {
+  const cfg = BATCH_STATUS_CONFIG[status];
+  if (!cfg) return <span className="text-xs text-muted-foreground">{status}</span>;
+  return (
+    <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-medium", cfg.className)}>
+      {cfg.label} <span className="opacity-70">| {cfg.labelZh}</span>
+    </span>
+  );
+}
+
 export function CommissionTypeChip({ type }: { type: string }) {
   if (type === "flat_rm30") {
     return <span className="inline-flex items-center px-2 py-0.5 rounded-full border text-xs font-medium bg-accent/10 text-accent border-accent/20">RM30 Flat | 固定RM30</span>;

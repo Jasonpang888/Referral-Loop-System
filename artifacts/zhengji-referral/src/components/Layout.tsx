@@ -34,11 +34,16 @@ const partnerNav: NavItem[] = [
   { href: "/partner/statement", label: "Statement", labelZh: "月度报表" },
 ];
 
+const financeNav: NavItem[] = [
+  { href: "/finance", label: "Payout Batches", labelZh: "月结批次" },
+];
+
 // role is the raw DB value (e.g. super_admin, outlet_staff, finance, partner_admin,
 // partner_staff) — must go through roleMatches/the alias table, not exact string
 // equality, or every real account falls through to the empty-nav default below.
 function getRoleNav(role?: string): NavItem[] {
   if (roleMatches(role, ["admin"])) return adminNav;
+  if (roleMatches(role, ["finance"])) return financeNav;
   if (roleMatches(role, ["zhengji_staff"])) return staffNav;
   if (roleMatches(role, ["kiri_partner"])) return partnerNav;
   return [];
@@ -46,6 +51,7 @@ function getRoleNav(role?: string): NavItem[] {
 
 function getRoleLabel(role?: string) {
   if (roleMatches(role, ["admin"])) return { en: "Admin", zh: "管理员" };
+  if (roleMatches(role, ["finance"])) return { en: "Finance", zh: "财务" };
   if (roleMatches(role, ["zhengji_staff"])) return { en: "Zhengji Staff", zh: "正脊堂员工" };
   if (roleMatches(role, ["kiri_partner"])) return { en: "Kiri Partner", zh: "Kiri合作伙伴" };
   return { en: "User", zh: "用户" };

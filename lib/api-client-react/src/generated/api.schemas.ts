@@ -331,6 +331,8 @@ export interface Commission {
   /** @nullable */
   auditNote?: string | null;
   /** @nullable */
+  batchId?: number | null;
+  /** @nullable */
   approvedBy?: string | null;
   /** @nullable */
   approvedAt?: string | null;
@@ -353,6 +355,83 @@ export interface CommissionAction {
 
 export interface PayoutAction {
   payoutReference: string;
+  auditNote?: string;
+}
+
+export type PayoutBatchStatus = typeof PayoutBatchStatus[keyof typeof PayoutBatchStatus];
+
+
+export const PayoutBatchStatus = {
+  draft: 'draft',
+  paid: 'paid',
+  cancelled: 'cancelled',
+} as const;
+
+export interface PayoutBatch {
+  id: number;
+  /** @nullable */
+  brandId?: number | null;
+  reference: string;
+  periodStart: string;
+  periodEnd: string;
+  status: PayoutBatchStatus;
+  totalAmount: number;
+  commissionCount: number;
+  /** @nullable */
+  payoutReference?: string | null;
+  /** @nullable */
+  paidAt?: string | null;
+  /** @nullable */
+  createdBy?: string | null;
+  /** @nullable */
+  auditNote?: string | null;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface PayoutBatchList {
+  batches: PayoutBatch[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export type PayoutBatchDetailStatus = typeof PayoutBatchDetailStatus[keyof typeof PayoutBatchDetailStatus];
+
+
+export const PayoutBatchDetailStatus = {
+  draft: 'draft',
+  paid: 'paid',
+  cancelled: 'cancelled',
+} as const;
+
+export interface PayoutBatchDetail {
+  id: number;
+  /** @nullable */
+  brandId?: number | null;
+  reference: string;
+  periodStart: string;
+  periodEnd: string;
+  status: PayoutBatchDetailStatus;
+  totalAmount: number;
+  commissionCount: number;
+  /** @nullable */
+  payoutReference?: string | null;
+  /** @nullable */
+  paidAt?: string | null;
+  /** @nullable */
+  createdBy?: string | null;
+  /** @nullable */
+  auditNote?: string | null;
+  createdAt: string;
+  updatedAt?: string;
+  commissions: Commission[];
+}
+
+export interface PayoutBatchInput {
+  periodStart: string;
+  periodEnd: string;
+  commissionIds: number[];
   auditNote?: string;
 }
 
@@ -649,6 +728,16 @@ partnerId?: number | null;
  * @nullable
  */
 brandId?: number | null;
+/**
+ * If true, only return commissions not yet assigned to a payout batch
+ */
+unbatched?: boolean;
+page?: number;
+limit?: number;
+};
+
+export type GetPayoutBatchesParams = {
+status?: string;
 page?: number;
 limit?: number;
 };

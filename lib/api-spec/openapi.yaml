@@ -430,6 +430,11 @@ paths:
           in: query
           schema:
             type: ["integer", "null"]
+        - name: unbatched
+          in: query
+          description: If true, only return commissions not yet assigned to a payout batch
+          schema:
+            type: boolean
         - name: page
           in: query
           schema:
@@ -564,6 +569,137 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Commission"
+
+  /payout-batches:
+    get:
+      operationId: getPayoutBatches
+      tags: [payoutBatches]
+      summary: List payout batches
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of payout batches
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PayoutBatchList"
+    post:
+      operationId: createPayoutBatch
+      tags: [payoutBatches]
+      summary: Create a payout batch from approved commissions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PayoutBatchInput"
+      responses:
+        "201":
+          description: Payout batch created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PayoutBatch"
+
+  /payout-batches/{id}:
+    get:
+      operationId: getPayoutBatch
+      tags: [payoutBatches]
+      summary: Get payout batch detail (with linked commissions)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Payout batch detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PayoutBatchDetail"
+
+  /payout-batches/{id}/mark-paid:
+    patch:
+      operationId: markPayoutBatchPaid
+      tags: [payoutBatches]
+      summary: Mark a payout batch (and all its commissions) as paid
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PayoutAction"
+      responses:
+        "200":
+          description: Payout batch paid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PayoutBatch"
+
+  /payout-batches/{id}/cancel:
+    patch:
+      operationId: cancelPayoutBatch
+      tags: [payoutBatches]
+      summary: Cancel a draft payout batch and release its commissions
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommissionAction"
+      responses:
+        "200":
+          description: Payout batch cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PayoutBatch"
+
+  /payout-batches/{id}/export:
+    get:
+      operationId: exportPayoutBatch
+      tags: [payoutBatches]
+      summary: Export a payout batch's commissions as CSV
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: CSV export metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExportResult"
 
   /partner/leads:
     get:
@@ -1357,6 +1493,8 @@ components:
           type: ["string", "null"]
         auditNote:
           type: ["string", "null"]
+        batchId:
+          type: ["integer", "null"]
         approvedBy:
           type: ["string", "null"]
         approvedAt:
@@ -1395,6 +1533,108 @@ components:
       properties:
         payoutReference:
           type: string
+        auditNote:
+          type: string
+
+    PayoutBatch:
+      type: object
+      required: [id, reference, periodStart, periodEnd, status, totalAmount, commissionCount, createdAt]
+      properties:
+        id:
+          type: integer
+        brandId:
+          type: ["integer", "null"]
+        reference:
+          type: string
+        periodStart:
+          type: string
+        periodEnd:
+          type: string
+        status:
+          type: string
+          enum: [draft, paid, cancelled]
+        totalAmount:
+          type: number
+        commissionCount:
+          type: integer
+        payoutReference:
+          type: ["string", "null"]
+        paidAt:
+          type: ["string", "null"]
+        createdBy:
+          type: ["string", "null"]
+        auditNote:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    PayoutBatchList:
+      type: object
+      required: [batches, total, page, limit]
+      properties:
+        batches:
+          type: array
+          items:
+            $ref: "#/components/schemas/PayoutBatch"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    PayoutBatchDetail:
+      type: object
+      required: [id, reference, periodStart, periodEnd, status, totalAmount, commissionCount, createdAt, commissions]
+      properties:
+        id:
+          type: integer
+        brandId:
+          type: ["integer", "null"]
+        reference:
+          type: string
+        periodStart:
+          type: string
+        periodEnd:
+          type: string
+        status:
+          type: string
+          enum: [draft, paid, cancelled]
+        totalAmount:
+          type: number
+        commissionCount:
+          type: integer
+        payoutReference:
+          type: ["string", "null"]
+        paidAt:
+          type: ["string", "null"]
+        createdBy:
+          type: ["string", "null"]
+        auditNote:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        commissions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Commission"
+
+    PayoutBatchInput:
+      type: object
+      required: [periodStart, periodEnd, commissionIds]
+      properties:
+        periodStart:
+          type: string
+        periodEnd:
+          type: string
+        commissionIds:
+          type: array
+          items:
+            type: integer
         auditNote:
           type: string
 

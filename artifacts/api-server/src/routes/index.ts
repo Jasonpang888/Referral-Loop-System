@@ -8,6 +8,7 @@ import partnerRouter from "./partner";
 import analyticsRouter from "./analytics";
 import campaignsRouter from "./campaigns";
 import auditExportsRouter from "./auditExports";
+import payoutBatchesRouter from "./payoutBatches";
 
 const router: IRouter = Router();
 
@@ -20,5 +21,6 @@ router.use(partnerRouter);
 router.use(analyticsRouter);
 router.use(campaignsRouter);
 router.use(auditExportsRouter);
+router.use(payoutBatchesRouter);
 
 export default router;

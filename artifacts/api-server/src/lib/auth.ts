@@ -83,7 +83,8 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
 // same route guards without touching every call site.
 const ROLE_ALIASES: Record<string, string[]> = {
   admin: ["admin", "super_admin"],
-  zhengji_staff: ["zhengji_staff", "brand_admin", "outlet_staff", "finance"],
+  zhengji_staff: ["zhengji_staff", "brand_admin", "outlet_staff"],
+  finance: ["finance"],
   kiri_partner: ["kiri_partner", "partner_admin", "partner_staff"],
 };
 

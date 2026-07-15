@@ -20706,27 +20706,27 @@ var require_router = __commonJS({
     var slice = Array.prototype.slice;
     var flatten = Array.prototype.flat;
     var methods = METHODS.map((method) => method.toLowerCase());
-    module.exports = Router11;
+    module.exports = Router12;
     module.exports.Route = Route;
-    function Router11(options) {
-      if (!(this instanceof Router11)) {
-        return new Router11(options);
+    function Router12(options) {
+      if (!(this instanceof Router12)) {
+        return new Router12(options);
       }
       const opts = options || {};
-      function router11(req, res, next) {
-        router11.handle(req, res, next);
+      function router12(req, res, next) {
+        router12.handle(req, res, next);
       }
-      Object.setPrototypeOf(router11, this);
-      router11.caseSensitive = opts.caseSensitive;
-      router11.mergeParams = opts.mergeParams;
-      router11.params = {};
-      router11.strict = opts.strict;
-      router11.stack = [];
-      return router11;
+      Object.setPrototypeOf(router12, this);
+      router12.caseSensitive = opts.caseSensitive;
+      router12.mergeParams = opts.mergeParams;
+      router12.params = {};
+      router12.strict = opts.strict;
+      router12.stack = [];
+      return router12;
     }
-    Router11.prototype = function() {
+    Router12.prototype = function() {
     };
-    Router11.prototype.param = function param(name, fn) {
+    Router12.prototype.param = function param(name, fn) {
       if (!name) {
         throw new TypeError("argument name is required");
       }
@@ -20746,7 +20746,7 @@ var require_router = __commonJS({
       params.push(fn);
       return this;
     };
-    Router11.prototype.handle = function handle(req, res, callback) {
+    Router12.prototype.handle = function handle(req, res, callback) {
       if (!callback) {
         throw new TypeError("argument callback is required");
       }
@@ -20873,7 +20873,7 @@ var require_router = __commonJS({
         }
       }
     };
-    Router11.prototype.use = function use(handler) {
+    Router12.prototype.use = function use(handler) {
       let offset = 0;
       let path = "/";
       if (typeof handler !== "function") {
@@ -20906,7 +20906,7 @@ var require_router = __commonJS({
       }
       return this;
     };
-    Router11.prototype.route = function route(path) {
+    Router12.prototype.route = function route(path) {
       const route2 = new Route(path);
       const layer = new Layer(path, {
         sensitive: this.caseSensitive,
@@ -20921,7 +20921,7 @@ var require_router = __commonJS({
       return route2;
     };
     methods.concat("all").forEach(function(method) {
-      Router11.prototype[method] = function(path) {
+      Router12.prototype[method] = function(path) {
         const route = this.route(path);
         route[method].apply(route, slice.call(arguments, 1));
         return this;
@@ -21104,13 +21104,13 @@ var require_application = __commonJS({
     var compileTrust = require_utils3().compileTrust;
     var resolve = __require("node:path").resolve;
     var once = require_once();
-    var Router11 = require_router();
+    var Router12 = require_router();
     var slice = Array.prototype.slice;
     var flatten = Array.prototype.flat;
     var app2 = exports = module.exports = {};
     var trustProxyDefaultSymbol = "@@symbol:trust_proxy_default";
     app2.init = function init() {
-      var router11 = null;
+      var router12 = null;
       this.cache = /* @__PURE__ */ Object.create(null);
       this.engines = /* @__PURE__ */ Object.create(null);
       this.settings = /* @__PURE__ */ Object.create(null);
@@ -21119,13 +21119,13 @@ var require_application = __commonJS({
         configurable: true,
         enumerable: true,
         get: function getrouter() {
-          if (router11 === null) {
-            router11 = new Router11({
+          if (router12 === null) {
+            router12 = new Router12({
               caseSensitive: this.enabled("case sensitive routing"),
               strict: this.enabled("strict routing")
             });
           }
-          return router11;
+          return router12;
         }
       });
     };
@@ -21196,15 +21196,15 @@ var require_application = __commonJS({
       if (fns.length === 0) {
         throw new TypeError("app.use() requires a middleware function");
       }
-      var router11 = this.router;
+      var router12 = this.router;
       fns.forEach(function(fn2) {
         if (!fn2 || !fn2.handle || !fn2.set) {
-          return router11.use(path, fn2);
+          return router12.use(path, fn2);
         }
         debug(".use app under %s", path);
         fn2.mountpath = path;
         fn2.parent = this;
-        router11.use(path, function mounted_app(req, res, next) {
+        router12.use(path, function mounted_app(req, res, next) {
           var orig = req.app;
           fn2.handle(req, res, function(err) {
             Object.setPrototypeOf(req, orig.request);
@@ -23789,7 +23789,7 @@ var require_express = __commonJS({
     var EventEmitter = __require("node:events").EventEmitter;
     var mixin = require_merge_descriptors();
     var proto = require_application();
-    var Router11 = require_router();
+    var Router12 = require_router();
     var req = require_request();
     var res = require_response();
     exports = module.exports = createApplication;
@@ -23811,8 +23811,8 @@ var require_express = __commonJS({
     exports.application = proto;
     exports.request = req;
     exports.response = res;
-    exports.Route = Router11.Route;
-    exports.Router = Router11;
+    exports.Route = Router12.Route;
+    exports.Router = Router12;
     exports.json = bodyParser.json;
     exports.raw = bodyParser.raw;
     exports.static = require_serve_static();
@@ -28208,7 +28208,7 @@ var require_pino = __commonJS({
     function pinoBundlerAbsolutePath(p) {
       try {
         const path = __require("path");
-        const outputDir = "/tmp/work3/artifacts/api-server/api";
+        const outputDir = "/tmp/work4/artifacts/api-server/api";
         return path.resolve(outputDir, p.replace(/^\.\//, ""));
       } catch (e) {
         const f = new Function("p", "return new URL(p, import.meta.url).pathname");
@@ -33821,12 +33821,12 @@ var require_lib5 = __commonJS({
 });
 
 // src/app.ts
-var import_express11 = __toESM(require_express2(), 1);
+var import_express12 = __toESM(require_express2(), 1);
 var import_cors = __toESM(require_lib3(), 1);
 var import_pino_http = __toESM(require_logger(), 1);
 
 // src/routes/index.ts
-var import_express10 = __toESM(require_express2(), 1);
+var import_express11 = __toESM(require_express2(), 1);
 
 // src/routes/health.ts
 var import_express = __toESM(require_express2(), 1);
@@ -38117,6 +38117,7 @@ var GetCommissionsQueryParams = objectType({
   "status": coerce.string().optional(),
   "partnerId": coerce.number().nullish(),
   "brandId": coerce.number().nullish(),
+  "unbatched": coerce.boolean().optional().describe("If true, only return commissions not yet assigned to a payout batch"),
   "page": coerce.number().optional(),
   "limit": coerce.number().optional()
 });
@@ -38136,6 +38137,7 @@ var GetCommissionsResponse = objectType({
     "payoutReference": stringType().nullish(),
     "proofUrl": stringType().nullish(),
     "auditNote": stringType().nullish(),
+    "batchId": numberType().nullish(),
     "approvedBy": stringType().nullish(),
     "approvedAt": stringType().nullish(),
     "paidAt": stringType().nullish(),
@@ -38164,6 +38166,7 @@ var GetCommissionResponse = objectType({
   "payoutReference": stringType().nullish(),
   "proofUrl": stringType().nullish(),
   "auditNote": stringType().nullish(),
+  "batchId": numberType().nullish(),
   "approvedBy": stringType().nullish(),
   "approvedAt": stringType().nullish(),
   "paidAt": stringType().nullish(),
@@ -38191,6 +38194,7 @@ var ApproveCommissionResponse = objectType({
   "payoutReference": stringType().nullish(),
   "proofUrl": stringType().nullish(),
   "auditNote": stringType().nullish(),
+  "batchId": numberType().nullish(),
   "approvedBy": stringType().nullish(),
   "approvedAt": stringType().nullish(),
   "paidAt": stringType().nullish(),
@@ -38218,6 +38222,7 @@ var RejectCommissionResponse = objectType({
   "payoutReference": stringType().nullish(),
   "proofUrl": stringType().nullish(),
   "auditNote": stringType().nullish(),
+  "batchId": numberType().nullish(),
   "approvedBy": stringType().nullish(),
   "approvedAt": stringType().nullish(),
   "paidAt": stringType().nullish(),
@@ -38246,6 +38251,7 @@ var PayCommissionResponse = objectType({
   "payoutReference": stringType().nullish(),
   "proofUrl": stringType().nullish(),
   "auditNote": stringType().nullish(),
+  "batchId": numberType().nullish(),
   "approvedBy": stringType().nullish(),
   "approvedAt": stringType().nullish(),
   "paidAt": stringType().nullish(),
@@ -38273,11 +38279,154 @@ var DisputeCommissionResponse = objectType({
   "payoutReference": stringType().nullish(),
   "proofUrl": stringType().nullish(),
   "auditNote": stringType().nullish(),
+  "batchId": numberType().nullish(),
   "approvedBy": stringType().nullish(),
   "approvedAt": stringType().nullish(),
   "paidAt": stringType().nullish(),
   "createdAt": stringType(),
   "updatedAt": stringType().optional()
+});
+var GetPayoutBatchesQueryParams = objectType({
+  "status": coerce.string().optional(),
+  "page": coerce.number().optional(),
+  "limit": coerce.number().optional()
+});
+var GetPayoutBatchesResponse = objectType({
+  "batches": arrayType(objectType({
+    "id": numberType(),
+    "brandId": numberType().nullish(),
+    "reference": stringType(),
+    "periodStart": stringType(),
+    "periodEnd": stringType(),
+    "status": enumType(["draft", "paid", "cancelled"]),
+    "totalAmount": numberType(),
+    "commissionCount": numberType(),
+    "payoutReference": stringType().nullish(),
+    "paidAt": stringType().nullish(),
+    "createdBy": stringType().nullish(),
+    "auditNote": stringType().nullish(),
+    "createdAt": stringType(),
+    "updatedAt": stringType().optional()
+  })),
+  "total": numberType(),
+  "page": numberType(),
+  "limit": numberType()
+});
+var CreatePayoutBatchBody = objectType({
+  "periodStart": stringType(),
+  "periodEnd": stringType(),
+  "commissionIds": arrayType(numberType()),
+  "auditNote": stringType().optional()
+});
+var CreatePayoutBatchResponse = objectType({
+  "id": numberType(),
+  "brandId": numberType().nullish(),
+  "reference": stringType(),
+  "periodStart": stringType(),
+  "periodEnd": stringType(),
+  "status": enumType(["draft", "paid", "cancelled"]),
+  "totalAmount": numberType(),
+  "commissionCount": numberType(),
+  "payoutReference": stringType().nullish(),
+  "paidAt": stringType().nullish(),
+  "createdBy": stringType().nullish(),
+  "auditNote": stringType().nullish(),
+  "createdAt": stringType(),
+  "updatedAt": stringType().optional()
+});
+var GetPayoutBatchParams = objectType({
+  "id": coerce.number()
+});
+var GetPayoutBatchResponse = objectType({
+  "id": numberType(),
+  "brandId": numberType().nullish(),
+  "reference": stringType(),
+  "periodStart": stringType(),
+  "periodEnd": stringType(),
+  "status": enumType(["draft", "paid", "cancelled"]),
+  "totalAmount": numberType(),
+  "commissionCount": numberType(),
+  "payoutReference": stringType().nullish(),
+  "paidAt": stringType().nullish(),
+  "createdBy": stringType().nullish(),
+  "auditNote": stringType().nullish(),
+  "createdAt": stringType(),
+  "updatedAt": stringType().optional(),
+  "commissions": arrayType(objectType({
+    "id": numberType(),
+    "brandId": numberType().nullish(),
+    "leadId": numberType(),
+    "leadName": stringType().optional(),
+    "partnerId": numberType(),
+    "partnerName": stringType().optional(),
+    "amount": numberType(),
+    "commissionType": enumType(["flat_rm30", "package_percent"]),
+    "commissionRate": numberType().nullish(),
+    "netSaleAmount": numberType().nullish(),
+    "status": enumType(["pending", "approved", "paid", "disputed", "rejected"]),
+    "payoutReference": stringType().nullish(),
+    "proofUrl": stringType().nullish(),
+    "auditNote": stringType().nullish(),
+    "batchId": numberType().nullish(),
+    "approvedBy": stringType().nullish(),
+    "approvedAt": stringType().nullish(),
+    "paidAt": stringType().nullish(),
+    "createdAt": stringType(),
+    "updatedAt": stringType().optional()
+  }))
+});
+var MarkPayoutBatchPaidParams = objectType({
+  "id": coerce.number()
+});
+var MarkPayoutBatchPaidBody = objectType({
+  "payoutReference": stringType(),
+  "auditNote": stringType().optional()
+});
+var MarkPayoutBatchPaidResponse = objectType({
+  "id": numberType(),
+  "brandId": numberType().nullish(),
+  "reference": stringType(),
+  "periodStart": stringType(),
+  "periodEnd": stringType(),
+  "status": enumType(["draft", "paid", "cancelled"]),
+  "totalAmount": numberType(),
+  "commissionCount": numberType(),
+  "payoutReference": stringType().nullish(),
+  "paidAt": stringType().nullish(),
+  "createdBy": stringType().nullish(),
+  "auditNote": stringType().nullish(),
+  "createdAt": stringType(),
+  "updatedAt": stringType().optional()
+});
+var CancelPayoutBatchParams = objectType({
+  "id": coerce.number()
+});
+var CancelPayoutBatchBody = objectType({
+  "auditNote": stringType().optional()
+});
+var CancelPayoutBatchResponse = objectType({
+  "id": numberType(),
+  "brandId": numberType().nullish(),
+  "reference": stringType(),
+  "periodStart": stringType(),
+  "periodEnd": stringType(),
+  "status": enumType(["draft", "paid", "cancelled"]),
+  "totalAmount": numberType(),
+  "commissionCount": numberType(),
+  "payoutReference": stringType().nullish(),
+  "paidAt": stringType().nullish(),
+  "createdBy": stringType().nullish(),
+  "auditNote": stringType().nullish(),
+  "createdAt": stringType(),
+  "updatedAt": stringType().optional()
+});
+var ExportPayoutBatchParams = objectType({
+  "id": coerce.number()
+});
+var ExportPayoutBatchResponse = objectType({
+  "csvData": stringType(),
+  "filename": stringType(),
+  "rowCount": numberType()
 });
 var GetPartnerLeadsQueryParams = objectType({
   "stage": coerce.string().optional(),
@@ -38332,6 +38481,7 @@ var GetPartnerCommissionsResponse = objectType({
     "payoutReference": stringType().nullish(),
     "proofUrl": stringType().nullish(),
     "auditNote": stringType().nullish(),
+    "batchId": numberType().nullish(),
     "approvedBy": stringType().nullish(),
     "approvedAt": stringType().nullish(),
     "paidAt": stringType().nullish(),
@@ -38403,6 +38553,7 @@ var GetPartnerStatementResponse = objectType({
     "payoutReference": stringType().nullish(),
     "proofUrl": stringType().nullish(),
     "auditNote": stringType().nullish(),
+    "batchId": numberType().nullish(),
     "approvedBy": stringType().nullish(),
     "approvedAt": stringType().nullish(),
     "paidAt": stringType().nullish(),
@@ -45747,11 +45898,14 @@ __export(schema_exports, {
   insertCommissionSchema: () => insertCommissionSchema,
   insertLeadSchema: () => insertLeadSchema,
   insertPartnerSchema: () => insertPartnerSchema,
+  insertPayoutBatchSchema: () => insertPayoutBatchSchema,
   insertUserSchema: () => insertUserSchema,
   leadStageEnum: () => leadStageEnum,
   leadsTable: () => leadsTable,
   partnerTypeEnum: () => partnerTypeEnum,
   partnersTable: () => partnersTable,
+  payoutBatchStatusEnum: () => payoutBatchStatusEnum,
+  payoutBatchesTable: () => payoutBatchesTable,
   userRoleEnum: () => userRoleEnum,
   usersTable: () => usersTable
 });
@@ -57293,6 +57447,7 @@ var commissionsTable = pgTable("commissions", {
   payoutReference: text("payout_reference"),
   proofUrl: text("proof_url"),
   auditNote: text("audit_note"),
+  batchId: integer("batch_id"),
   approvedBy: text("approved_by"),
   approvedAt: timestamp("approved_at", { withTimezone: true }),
   paidAt: timestamp("paid_at", { withTimezone: true }),
@@ -57300,6 +57455,30 @@ var commissionsTable = pgTable("commissions", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => /* @__PURE__ */ new Date())
 });
 var insertCommissionSchema = createInsertSchema(commissionsTable).omit({ id: true, createdAt: true, updatedAt: true });
+
+// ../../lib/db/src/schema/payoutBatches.ts
+var payoutBatchStatusEnum = pgEnum("payout_batch_status", [
+  "draft",
+  "paid",
+  "cancelled"
+]);
+var payoutBatchesTable = pgTable("payout_batches", {
+  id: serial("id").primaryKey(),
+  brandId: integer("brand_id"),
+  reference: text("reference").notNull(),
+  periodStart: date("period_start", { mode: "string" }).notNull(),
+  periodEnd: date("period_end", { mode: "string" }).notNull(),
+  status: payoutBatchStatusEnum("status").notNull().default("draft"),
+  totalAmount: numeric("total_amount", { precision: 12, scale: 2 }).notNull().default("0"),
+  commissionCount: integer("commission_count").notNull().default(0),
+  payoutReference: text("payout_reference"),
+  paidAt: timestamp("paid_at", { withTimezone: true }),
+  createdBy: text("created_by"),
+  auditNote: text("audit_note"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => /* @__PURE__ */ new Date())
+});
+var insertPayoutBatchSchema = createInsertSchema(payoutBatchesTable).omit({ id: true, createdAt: true, updatedAt: true });
 
 // ../../lib/db/src/schema/auditLog.ts
 var auditLogTable = pgTable("audit_log", {
@@ -57387,7 +57566,8 @@ function requireAuth(req, res, next) {
 }
 var ROLE_ALIASES = {
   admin: ["admin", "super_admin"],
-  zhengji_staff: ["zhengji_staff", "brand_admin", "outlet_staff", "finance"],
+  zhengji_staff: ["zhengji_staff", "brand_admin", "outlet_staff"],
+  finance: ["finance"],
   kiri_partner: ["kiri_partner", "partner_admin", "partner_staff"]
 };
 function expandRoles(roles) {
@@ -57820,13 +58000,14 @@ async function enrichCommission(comm) {
     updatedAt: comm.updatedAt.toISOString()
   };
 }
-router5.get("/commissions", requireAuth, requireRole("admin", "zhengji_staff"), async (req, res) => {
-  const { status, page = "1", limit = "20" } = req.query;
+router5.get("/commissions", requireAuth, requireRole("admin", "zhengji_staff", "finance"), async (req, res) => {
+  const { status, unbatched, page = "1", limit = "20" } = req.query;
   const pageNum = Math.max(1, parseInt(page, 10));
   const limitNum = Math.min(100, parseInt(limit, 10));
   const offset = (pageNum - 1) * limitNum;
   const conditions = [];
   if (status) conditions.push(eq(commissionsTable.status, status));
+  if (unbatched === "true") conditions.push(isNull(commissionsTable.batchId));
   const query = conditions.length > 0 ? and(...conditions) : void 0;
   const [{ total }] = await db.select({ total: count() }).from(commissionsTable).where(query);
   const comms = await db.select().from(commissionsTable).where(query).orderBy(desc(commissionsTable.createdAt)).limit(limitNum).offset(offset);
@@ -58486,18 +58667,259 @@ router9.get("/exports/commissions", requireAuth, requireRole("admin", "zhengji_s
 });
 var auditExports_default = router9;
 
-// src/routes/index.ts
+// src/routes/payoutBatches.ts
+var import_express10 = __toESM(require_express2(), 1);
 var router10 = (0, import_express10.Router)();
-router10.use(health_default);
-router10.use(auth_default);
-router10.use(referral_default);
-router10.use(leads_default);
-router10.use(commissions_default);
-router10.use(partner_default);
-router10.use(analytics_default);
-router10.use(campaigns_default);
-router10.use(auditExports_default);
-var routes_default = router10;
+function enrichBatch(batch) {
+  return {
+    ...batch,
+    totalAmount: parseFloat(batch.totalAmount),
+    paidAt: batch.paidAt?.toISOString() ?? null,
+    createdAt: batch.createdAt.toISOString(),
+    updatedAt: batch.updatedAt.toISOString()
+  };
+}
+async function enrichCommission2(comm) {
+  const [lead] = await db.select().from(leadsTable).where(eq(leadsTable.id, comm.leadId));
+  const [partner] = await db.select().from(partnersTable).where(eq(partnersTable.id, comm.partnerId));
+  return {
+    ...comm,
+    leadName: lead?.name ?? "Unknown",
+    partnerName: partner?.displayName ?? "Unknown",
+    amount: parseFloat(comm.amount),
+    commissionRate: comm.commissionRate != null ? parseFloat(comm.commissionRate) : null,
+    netSaleAmount: comm.netSaleAmount != null ? parseFloat(comm.netSaleAmount) : null,
+    approvedAt: comm.approvedAt?.toISOString() ?? null,
+    paidAt: comm.paidAt?.toISOString() ?? null,
+    createdAt: comm.createdAt.toISOString(),
+    updatedAt: comm.updatedAt.toISOString()
+  };
+}
+async function generateReference(periodStart) {
+  const ym = periodStart.slice(0, 7).replace("-", "");
+  const prefix = `PB-${ym}-`;
+  const [{ cnt }] = await db.select({ cnt: count() }).from(payoutBatchesTable).where(sql`${payoutBatchesTable.reference} like ${prefix + "%"}`);
+  const seq = (Number(cnt) + 1).toString().padStart(3, "0");
+  return `${prefix}${seq}`;
+}
+router10.get("/payout-batches", requireAuth, requireRole("admin", "finance"), async (req, res) => {
+  const { status, page = "1", limit = "20" } = req.query;
+  const pageNum = Math.max(1, parseInt(page, 10));
+  const limitNum = Math.min(100, parseInt(limit, 10));
+  const offset = (pageNum - 1) * limitNum;
+  const conditions = [];
+  if (status) conditions.push(eq(payoutBatchesTable.status, status));
+  const query = conditions.length > 0 ? and(...conditions) : void 0;
+  const [{ total }] = await db.select({ total: count() }).from(payoutBatchesTable).where(query);
+  const batches = await db.select().from(payoutBatchesTable).where(query).orderBy(desc(payoutBatchesTable.createdAt)).limit(limitNum).offset(offset);
+  res.json({ batches: batches.map(enrichBatch), total: Number(total), page: pageNum, limit: limitNum });
+});
+router10.post("/payout-batches", requireAuth, requireRole("admin", "finance"), async (req, res) => {
+  const { periodStart, periodEnd, commissionIds, auditNote } = req.body;
+  const performedBy = req.user?.userId?.toString() ?? "finance";
+  if (!periodStart || !periodEnd) {
+    res.status(400).json({ error: "periodStart and periodEnd required" });
+    return;
+  }
+  if (!Array.isArray(commissionIds) || commissionIds.length === 0) {
+    res.status(400).json({ error: "commissionIds must be a non-empty array" });
+    return;
+  }
+  const comms = await db.select().from(commissionsTable).where(inArray(commissionsTable.id, commissionIds));
+  if (comms.length !== commissionIds.length) {
+    res.status(400).json({ error: "One or more commission IDs were not found" });
+    return;
+  }
+  const notApproved = comms.filter((c) => c.status !== "approved");
+  if (notApproved.length > 0) {
+    res.status(409).json({ error: `Commissions must be in 'approved' status to be batched. Offending IDs: ${notApproved.map((c) => c.id).join(", ")}` });
+    return;
+  }
+  const alreadyBatched = comms.filter((c) => c.batchId != null);
+  if (alreadyBatched.length > 0) {
+    res.status(409).json({ error: `Commissions already belong to another batch. Offending IDs: ${alreadyBatched.map((c) => c.id).join(", ")}` });
+    return;
+  }
+  const totalAmount = comms.reduce((sum2, c) => sum2 + parseFloat(c.amount), 0);
+  const reference = await generateReference(periodStart);
+  const [batch] = await db.insert(payoutBatchesTable).values({
+    brandId: comms[0]?.brandId ?? null,
+    reference,
+    periodStart,
+    periodEnd,
+    status: "draft",
+    totalAmount: totalAmount.toFixed(2),
+    commissionCount: comms.length,
+    createdBy: performedBy,
+    auditNote: auditNote ?? null
+  }).returning();
+  await db.update(commissionsTable).set({ batchId: batch.id }).where(inArray(commissionsTable.id, commissionIds));
+  await addAuditLog(db, auditLogTable, {
+    entityType: "payout_batch",
+    entityId: batch.id,
+    action: "created",
+    previousValue: null,
+    newValue: "draft",
+    auditNote: `Batch ${reference}: ${comms.length} commissions, RM${totalAmount.toFixed(2)}${auditNote ? `. ${auditNote}` : ""}`,
+    performedBy
+  });
+  for (const c of comms) {
+    await addAuditLog(db, auditLogTable, {
+      entityType: "commission",
+      entityId: c.id,
+      action: "added_to_batch",
+      previousValue: null,
+      newValue: reference,
+      auditNote: null,
+      performedBy
+    });
+  }
+  res.status(201).json(enrichBatch(batch));
+});
+router10.get("/payout-batches/:id", requireAuth, requireRole("admin", "finance"), async (req, res) => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid ID" });
+    return;
+  }
+  const [batch] = await db.select().from(payoutBatchesTable).where(eq(payoutBatchesTable.id, id));
+  if (!batch) {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
+  const comms = await db.select().from(commissionsTable).where(eq(commissionsTable.batchId, id)).orderBy(desc(commissionsTable.createdAt));
+  const enrichedComms = await Promise.all(comms.map(enrichCommission2));
+  res.json({ ...enrichBatch(batch), commissions: enrichedComms });
+});
+router10.patch("/payout-batches/:id/mark-paid", requireAuth, requireRole("admin", "finance"), async (req, res) => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid ID" });
+    return;
+  }
+  const { payoutReference, auditNote } = req.body;
+  if (!payoutReference) {
+    res.status(400).json({ error: "payoutReference required" });
+    return;
+  }
+  const performedBy = req.user?.userId?.toString() ?? "finance";
+  const [batch] = await db.select().from(payoutBatchesTable).where(eq(payoutBatchesTable.id, id));
+  if (!batch) {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
+  if (batch.status !== "draft") {
+    res.status(409).json({ error: `Batch is already ${batch.status}` });
+    return;
+  }
+  const now = /* @__PURE__ */ new Date();
+  const [updated] = await db.update(payoutBatchesTable).set({ status: "paid", payoutReference, paidAt: now, auditNote: auditNote ?? batch.auditNote }).where(eq(payoutBatchesTable.id, id)).returning();
+  const comms = await db.select().from(commissionsTable).where(eq(commissionsTable.batchId, id));
+  await db.update(commissionsTable).set({ status: "paid", payoutReference, paidAt: now }).where(eq(commissionsTable.batchId, id));
+  await addAuditLog(db, auditLogTable, {
+    entityType: "payout_batch",
+    entityId: id,
+    action: "paid",
+    previousValue: "draft",
+    newValue: "paid",
+    auditNote: `Payout ref: ${payoutReference}${auditNote ? `. ${auditNote}` : ""}`,
+    performedBy
+  });
+  for (const c of comms) {
+    await addAuditLog(db, auditLogTable, {
+      entityType: "commission",
+      entityId: c.id,
+      action: "paid",
+      previousValue: c.status,
+      newValue: "paid",
+      auditNote: `Paid via batch ${batch.reference} (ref: ${payoutReference})`,
+      performedBy
+    });
+  }
+  res.json(enrichBatch(updated));
+});
+router10.patch("/payout-batches/:id/cancel", requireAuth, requireRole("admin", "finance"), async (req, res) => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid ID" });
+    return;
+  }
+  const { auditNote } = req.body;
+  const performedBy = req.user?.userId?.toString() ?? "finance";
+  const [batch] = await db.select().from(payoutBatchesTable).where(eq(payoutBatchesTable.id, id));
+  if (!batch) {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
+  if (batch.status !== "draft") {
+    res.status(409).json({ error: `Only draft batches can be cancelled (batch is ${batch.status})` });
+    return;
+  }
+  await db.update(commissionsTable).set({ batchId: null }).where(eq(commissionsTable.batchId, id));
+  const [updated] = await db.update(payoutBatchesTable).set({ status: "cancelled", auditNote: auditNote ?? batch.auditNote }).where(eq(payoutBatchesTable.id, id)).returning();
+  await addAuditLog(db, auditLogTable, {
+    entityType: "payout_batch",
+    entityId: id,
+    action: "cancelled",
+    previousValue: "draft",
+    newValue: "cancelled",
+    auditNote: auditNote ?? null,
+    performedBy
+  });
+  res.json(enrichBatch(updated));
+});
+function batchToCSV(batch, comms) {
+  const header = ["Batch Reference", "Partner Name", "Lead Name", "Amount (RM)", "Commission Type", "Approved At"];
+  const rows = comms.map((c) => [
+    batch.reference,
+    c.partnerName ?? "",
+    c.leadName ?? "",
+    parseFloat(c.amount),
+    c.commissionType,
+    c.approvedAt ? c.approvedAt instanceof Date ? c.approvedAt.toISOString() : c.approvedAt : ""
+  ]);
+  return [header, ...rows].map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+}
+router10.get("/payout-batches/:id/export", requireAuth, requireRole("admin", "finance"), async (req, res) => {
+  const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const id = parseInt(raw, 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid ID" });
+    return;
+  }
+  const [batch] = await db.select().from(payoutBatchesTable).where(eq(payoutBatchesTable.id, id));
+  if (!batch) {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
+  const comms = await db.select().from(commissionsTable).where(eq(commissionsTable.batchId, id));
+  const enriched = await Promise.all(comms.map(async (c) => {
+    const [lead] = await db.select().from(leadsTable).where(eq(leadsTable.id, c.leadId));
+    const [partner] = await db.select().from(partnersTable).where(eq(partnersTable.id, c.partnerId));
+    return { ...c, leadName: lead?.name ?? "", partnerName: partner?.displayName ?? "" };
+  }));
+  const csvData = batchToCSV(batch, enriched);
+  const filename = `payout_batch_${batch.reference}.csv`;
+  res.json({ csvData, filename, rowCount: comms.length });
+});
+var payoutBatches_default = router10;
+
+// src/routes/index.ts
+var router11 = (0, import_express11.Router)();
+router11.use(health_default);
+router11.use(auth_default);
+router11.use(referral_default);
+router11.use(leads_default);
+router11.use(commissions_default);
+router11.use(partner_default);
+router11.use(analytics_default);
+router11.use(campaigns_default);
+router11.use(auditExports_default);
+router11.use(payoutBatches_default);
+var routes_default = router11;
 
 // src/lib/logger.ts
 var import_pino = __toESM(require_pino(), 1);
@@ -58518,7 +58940,7 @@ var logger = (0, import_pino.default)({
 });
 
 // src/app.ts
-var app = (0, import_express11.default)();
+var app = (0, import_express12.default)();
 app.use(
   (0, import_pino_http.default)({
     logger,
@@ -58539,8 +58961,8 @@ app.use(
   })
 );
 app.use((0, import_cors.default)());
-app.use(import_express11.default.json());
-app.use(import_express11.default.urlencoded({ extended: true }));
+app.use(import_express12.default.json());
+app.use(import_express12.default.urlencoded({ extended: true }));
 app.use("/api", routes_default);
 var app_default = app;
 

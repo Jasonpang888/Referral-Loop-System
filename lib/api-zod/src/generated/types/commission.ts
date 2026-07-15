@@ -30,6 +30,8 @@ export interface Commission {
   /** @nullable */
   auditNote?: string | null;
   /** @nullable */
+  batchId?: number | null;
+  /** @nullable */
   approvedBy?: string | null;
   /** @nullable */
   approvedAt?: string | null;

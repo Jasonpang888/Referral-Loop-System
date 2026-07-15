@@ -19,6 +19,10 @@ import PayoutsPage from "@/pages/admin/PayoutsPage";
 import AuditPage from "@/pages/admin/AuditPage";
 import ExportsPage from "@/pages/admin/ExportsPage";
 
+// Finance pages
+import BatchesPage from "@/pages/finance/BatchesPage";
+import BatchDetail from "@/pages/finance/BatchDetail";
+
 // Staff pages
 import StaffDashboard from "@/pages/staff/StaffDashboard";
 import LeadDetail from "@/pages/staff/LeadDetail";
@@ -86,6 +90,10 @@ function RoleRouter() {
       <Route path="/admin/payouts" component={() => <ProtectedRoute component={PayoutsPage} roles={["admin"]} />} />
       <Route path="/admin/audit" component={() => <ProtectedRoute component={AuditPage} roles={["admin"]} />} />
       <Route path="/admin/exports" component={() => <ProtectedRoute component={ExportsPage} roles={["admin"]} />} />
+
+      {/* Finance routes */}
+      <Route path="/finance" component={() => <ProtectedRoute component={BatchesPage} roles={["admin", "finance"]} />} />
+      <Route path="/finance/batches/:id" component={({ params }: any) => <ProtectedRoute component={BatchDetail} roles={["admin", "finance"]} />} />
 
       {/* Staff routes */}
       <Route path="/staff" component={() => <ProtectedRoute component={StaffDashboard} roles={["admin", "zhengji_staff"]} />} />
